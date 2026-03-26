@@ -1,0 +1,282 @@
+.dlgOverlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(55, 55, 55, 0.5);
+    z-index: 9999;
+    text-align: center;
+    width: 100%;
+    margin: auto;
+}
+
+.logo {
+    height: auto;
+    max-width: 80px;
+}
+
+#dlgOverlay .center-stack {
+    margin: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+#dlgContact .alert-stack {
+    margin: auto;
+    padding: 1.0rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 75%;
+}
+
+
+.tarjeta {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.nav-stack {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.text-detail {
+    color: #61696f;
+    font-size: 1rem;
+}
+
+.leyenda-sesion {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: #212529;
+    color: #fff;
+    border: 0.125rem solid #fff;
+
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+
+    font-weight: 700;
+    text-align: center;
+
+    width: 75%;
+    z-index: 9999;
+    max-width: 400px;
+    min-width: 300px;
+}
+
+/* Animaciones para leyendas */
+@keyframes leyendaSlideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translate(calc(-50% - 150px), -50%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes leyendaSlideOutToRight {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + 150px), -50%);
+    }
+}
+
+.leyenda-sesion.leyenda-entering {
+    animation: leyendaSlideInFromLeft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.leyenda-sesion.leyenda-exiting {
+    animation: leyendaSlideOutToRight 0.3s ease-in forwards;
+}
+
+.alert-content {
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    line-height: 2.0rem;
+}
+
+.alert-warning-custom {
+    color: #ffffff;
+    background-color: #212529;
+    border: 0.125rem solid #e11717;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    max-width: 400px;
+    min-width: 300px;
+}
+
+.alert-success-custom {
+    color: #ffffff;
+    background-color: #212529;
+    border: 0.125rem solid #17e12b;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    max-width: 400px;
+    min-width: 300px;
+}
+
+.alert-info-custom {
+    color: #ffffff;
+    background-color: #212529;
+    border: 0.125rem solid #5df5f0;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    max-width: 400px;
+    min-width: 300px;
+}
+
+.form-control.cont-data {
+    border: 0.08rem solid #598ec8;
+}
+
+#saldo.show-data {
+    font-size: 1.5rem;
+    font-weight: 600;
+    width: 75%;
+    max-width: 300px;
+}
+
+.main-title {
+    font-size: clamp(1.8rem, 5vw, 4rem);
+    line-height: 1.2;
+    font-weight: 700;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.chart-container {
+    width: 100%;
+    max-width: 600px;
+    height: 200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#dlgSelectedContact {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.max-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.contact-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    line-height: 1.2;
+}
+
+.contact-item:hover {
+    background-color: #f1f3f5;
+}
+
+.contact-item.kb-hover {
+    background-color: #f1f3f5;
+}
+
+.contact-item.active {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.contact-item.active:hover,
+.contact-item.active.kb-hover {
+    background-color: #0b5ed7;
+}
+
+hr.linea {
+    width: 75%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.inicio {
+    margin-top: 6rem;
+}
+
+/* Animaciones para alertas */
+@keyframes slideUpBounce {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    70% {
+        transform: translateY(5px);
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutUp {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+}
+
+/* Animaciones solo en el contenido de la alerta, no en el fondo */
+.alert-warning-custom.alert-entering,
+.alert-success-custom.alert-entering,
+.alert-info-custom.alert-entering {
+    animation: slideUpBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.alert-warning-custom.alert-exiting,
+.alert-success-custom.alert-exiting,
+.alert-info-custom.alert-exiting {
+    animation: slideOutUp 0.5s ease-in forwards;
+}
+
+.dlgOverlay.alert-visible {
+    display: flex;
+}

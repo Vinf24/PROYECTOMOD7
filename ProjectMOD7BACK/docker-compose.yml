@@ -1,0 +1,46 @@
+services:
+  pauth6-api:
+    build: .
+    image: pauth6-api
+    container_name: pauth6-api-container
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: pauth6_db
+      DB_USER: pauth6_user
+      DB_PASSWORD: pauth6_password
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  mysql:
+    image: mysql:8.4
+    container_name: pauth6-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: pauth6_db
+      MYSQL_USER: pauth6_user
+      MYSQL_PASSWORD: pauth6_password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - pauth6_mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pauth6_mysql_data:
