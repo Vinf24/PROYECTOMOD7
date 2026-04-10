@@ -1,8 +1,27 @@
-# Proyecto de Autenticación con MFA (Django + Docker)
+# Proyecto de Autenticación + Peliculas con Reseñas (Django + Docker)
 
-Este proyecto implementa un sistema de autenticación con **login + MFA (código de 6 dígitos)** usando Django REST Framework.
+Este proyecto es una API REST construida con Django + Django REST Framework, que incluye:
+
+-	Sistema de autenticación con sesiones
+-	Login con MFA (código de 6 dígitos)
+-	Gestión de usuarios
+-	CRUD de películas
+-	Sistema de reseñas por usuario
+-	Backend dockerizado con MySQL
 
 ---
+
+## Tecnologias utilizadas
+
+- Django
+- Django REST Framework
+- MySQL
+- Docker y Docker Compose
+- JavaScript (frontend desacoplado)
+
+---
+
+# Instalación
 
 ## Requisitos
 
@@ -16,7 +35,8 @@ Antes de comenzar, asegúrate de tener instalado:
 ## Clonar el repositorio
 
 ```bash
-git clone https://github.com/Vinf24/auth6_project.git
+git clone https://github.com/Vinf24/PROYECTOMOD7.git
+cd ProjectMODBACK
 cd auth6_project
 ```
 
