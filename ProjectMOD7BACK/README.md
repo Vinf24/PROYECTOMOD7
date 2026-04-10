@@ -55,7 +55,7 @@ docker compose up -d --build
 ## Aplicar migraciones
 
 ```bash
-docker compose exec pauth6-api python auth6_project/manage.py migrate
+docker compose exec pauth6-api python manage.py migrate
 ```
 
 ## Crear superusuario
@@ -66,10 +66,18 @@ docker compose exec pauth6-api python manage.py createsuperuser
 
 ---
 
-## Acceso
+# Acceso
 
 - API: http://localhost:8000
 - Admin: http://localhost:8000/admin
+
+---
+
+# Autenticación
+
+El sistema usa cookies de sesión + CSRF (no tokens, planteamiento futuro)
+
+---
 
 ## Registrar usuario
 
@@ -123,7 +131,11 @@ respuesta esperada:
 
 Para usar MFA, primero debe activarse
 
-## Activar MFA desde la terminal:
+# Activar MFA 
+
+---
+
+## Desde la terminal:
 
 ```bash
 docker compose exec pauth6-api python manage.py shell
@@ -135,6 +147,8 @@ docker compose exec pauth6-api python manage.py shell
 >>> user.mfa_required = True
 >>> user.save()
 ```
+
+---
 
 respuesta con mfa activado:
 ```json
@@ -169,7 +183,9 @@ This code will expire in 5 minutes.
 </html>
 ```
 
-## Utilizar MFA
+# Utilizar MFA
+
+## Login con MFA
 
 POST: http://localhost:8000/auth/verify-mfa/
 
@@ -191,6 +207,156 @@ respuesta esperada:
   }
 }
 ```
+
+---
+
+## Reenviar código MFA
+
+POST /auth/resend-mfa/
+
+```json
+{
+  "challenge_id": "uuid"
+}
+```
+
+---
+
+## Verificar sesión
+
+GET /auth/check-session/
+
+Respuesta:
+```json
+{
+  "authenticated": true,
+  "user": {
+    "id": 1,
+    "email": "test@test.com"
+  }
+}
+```
+
+---
+
+## Logout
+
+POST /auth/logout/
+
+---
+
+# Módulo de Peliculas
+
+## Listar peliculas
+
+GET /movies/
+
+Parámetros opcionales:
+-	search → buscar por título
+-	order:
+  -	mejor_valoradas
+  -	mas_reseñadas
+  -	orden_alfabético
+-	page
+
+Ejemplo:
+/movies/?search=batman&order=mejor_valoradas&page=1
+
+Respuesta:
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "title": "Batman",
+      "poster_url": "/media/posters/batman.jpg",
+      "average_rating": 8.5
+    }
+  ],
+  "total_pages": 5,
+  "current_page": 1
+}
+```
+
+---
+
+## Detalle de película
+
+GET /movies/{id}/
+
+Respuesta:
+```json
+{
+  "id": 1,
+  "title": "Batman",
+  "description": "Película...",
+  "poster_url": "http://localhost:8000/media/posters/batman.jpg",
+  "average_rating": 8.5,
+  "reviews": [...],
+  "user_review": {...}
+}
+```
+
+---
+
+# Sistema de Reseñas
+
+## Crear Reseña
+
+POST /movies/{id}/reviews/
+
+```json
+{
+  "rating": 9,
+  "comment": "Excelente película"
+}
+```
+
+---
+
+## Editar Reseña
+
+PATCH /movies/reviews/{review_id}/
+
+```json
+{
+  "rating": 8,
+  "comment": "Cambio de opinión"
+}
+```
+
+---
+
+## Eliminar Reseña
+
+DELETE /movies/reviews/{review_id}/delete/
+
+---
+
+## Reglas
+
+- Se pueden revisar películas, pero no reseñar sin estar autentificado
+- Además se verá un listado de las reseñas de otros usuarios
+- Al estar autentificado, solo podrá crear una reseña por película
+  - Si no tiene reseña, verá un formulario para añadirla
+  - Si ya tiene, la verá junto con las opciones:
+    - Eliminar
+    - Editar
+
+---
+
+# Imágenes ( Posters)
+
+Las imágenes se almacenan en:
+
+/media/posters/
+
+Ejemplo:
+http://localhost:8000/media/posters/batman.jpg
+
+Si una película no tiene imagen:
+
+/media/posters/default.jpg
 
 ---
 
@@ -219,3 +385,20 @@ El servicio de base de datos expone el puerto:
 - Database: (nombre de la base de datos)
 
 ---
+
+# Funciones clave
+
+-	Autenticación con sesiones
+-	Protección CSRF
+-	MFA con expiración
+-	Reenvío de códigos
+-	Relación Usuario, Pelicula a través de Reseñas
+-	Cálculo de notas promedio dinámico
+-	Filtros y ordenamiento
+-	Paginación
+-	Manejo de imágenes desde backend
+
+---
+
+
+
