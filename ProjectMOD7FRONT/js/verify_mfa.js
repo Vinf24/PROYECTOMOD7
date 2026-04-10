@@ -2,19 +2,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const form = document.getElementById("mfaForm");
     const input = document.getElementById("mfaCode");
+    const resendBtn = document.getElementById("resendBtn");
 
-    const dlg = document.getElementById("dlgMFA");
-    const dlgData = document.getElementById("dlgMFAData");
-    const goBtn = document.getElementById("goMFA");
-
-    const challengeId = localStorage.getItem("challenge_id");
+    let challengeId = localStorage.getItem("challenge_id");
     const rememberMe = localStorage.getItem("remember_me") === "true";
 
     let success = false;
 
+    const maskedEmail = localStorage.getItem("masked_email");
+
+    if (maskedEmail) {
+        const text = document.getElementById("mfaEmailText");
+        if (text) {
+            text.textContent = `Ingresa el código enviado a ${maskedEmail}`;
+        }
+    }
+
+    const timerEl = document.getElementById("mfaTimer");
+
+    let timeLeft = 300;
+    let resendCooldown = 60;
+
+    input.addEventListener("input", () => {
+        input.value = input.value.replace(/\D/g, "");
+    });
+
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+
+        timerEl.textContent = `El código expira en ${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 0) {
+            timerEl.textContent = "El código ha expirado";
+
+            input.disabled = true;
+            document.getElementById("mfa-btn").disabled = true;
+
+            return;
+        }
+
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+    }
+
+    updateTimer();
+
+    function updateResendButton() {
+        if (resendCooldown > 0) {
+            resendBtn.disabled = true;
+            resendBtn.textContent = `Reenviar (${resendCooldown}s)`;
+            resendCooldown--;
+            setTimeout(updateResendButton, 1000);
+        } else {
+            resendBtn.disabled = false;
+            resendBtn.textContent = "Reenviar código";
+        }
+    }
+
+    updateResendButton();
+
     function mostrarError(msg) {
-        dlgData.textContent = msg;
-        showAlert(dlg, 3000);
+        showAlert({
+            type: "danger",
+            message: msg
+        });
     }
 
     if (!challengeId) {
@@ -35,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!code || code.length !== 6) {
             mostrarError("Código inválido");
+            btn.disabled = false;
             return;
         }
 
@@ -49,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({
                     challenge_id: challengeId,
                     code: code,
+                    purpose: "login",
                     remember_me: rememberMe
                 })
             });
@@ -57,8 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!response.ok) {
 
-                if (response.status === 403 && data.error === "MFA attempts exceeded") {
-                    mostrarError("Demasiados intentos. Vuelve a iniciar sesión.");
+                if (data.attempts_left === 0) {
+                    mostrarError("Has superado el número máximo de intentos");
 
                     localStorage.removeItem("challenge_id");
 
@@ -69,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                if (response.status === 403 && data.error === "MFA expired") {
+                if (data.error === "Código expirado") {
                     mostrarError("El código expiró. Inicia sesión nuevamente.");
 
                     localStorage.removeItem("challenge_id");
@@ -81,15 +135,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                mostrarError(data.error || "Código incorrecto");
+                let msg = data.error || "Código incorrecto";
+
+                if (data.attempts_left !== undefined) {
+                    msg += ` (Intentos restantes: ${data.attempts_left})`;
+                }
+
+                mostrarError(msg);
+                input.value = "";
 
                 return;
             }
 
             success = true;
             localStorage.removeItem("challenge_id");
+            localStorage.removeItem("masked_email");
 
             const leyenda = document.createElement("div");
+
             leyenda.textContent = "Verificando...";
             leyenda.classList.add("leyenda-sesion");
             leyenda.style.zIndex = "9999";
@@ -100,8 +163,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             leyenda.classList.add("leyenda-entering");
 
+            localStorage.setItem("user", JSON.stringify(data.user));
+
             leyenda.addEventListener("animationend", () => {
-                window.location.href = "inicio.html";
+
+                const user = data.user;
+
+                if (user.is_staff) {
+                    window.location.href = "control.html";
+                } else {
+                    window.location.href = "main.html";
+                }
+
             }, { once: true });
 
         } catch (error) {
@@ -113,8 +186,50 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    goBtn.addEventListener("click", () => {
-        hideAlert(dlg);
+    resendBtn.addEventListener("click", async () => {
+
+        resendBtn.disabled = true;
+        resendBtn.textContent = "Enviando...";
+
+        try {
+            const response = await fetch("http://localhost:8000/auth/resend-mfa/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    challenge_id: challengeId
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error);
+
+            challengeId = data.challenge_id;
+            localStorage.setItem("challenge_id", challengeId);
+            localStorage.setItem("masked_email", data.masked_email);
+
+            const text = document.getElementById("mfaEmailText");
+            if (text) {
+                text.textContent = `Ingresa el código enviado a ${data.masked_email}`;
+            }
+
+            timeLeft = 300;
+            updateTimer();
+            resendCooldown = 60;
+            updateResendButton();
+
+            showAlert({ type: "success", message: "Nuevo código enviado" });
+
+        } catch (err) {
+            showAlert({ type: "danger", message: err.message || "Error al reenviar código" });
+        } finally {
+            resendBtn.disabled = false;
+            resendBtn.textContent = "Reenviar código";
+        }
     });
 
 });

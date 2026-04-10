@@ -1,8 +1,11 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
 import uuid
 from datetime import timedelta
+from django.conf import settings
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 # Create your models here.
 
@@ -63,6 +66,9 @@ class MFAChallenge(models.Model):
         ('register', 'Register'),
         ('password_reset', 'Password Reset'),
         ('email_verification', 'Email Verification'),
+        ('change_password', 'Change Password'),
+        ('change_email', 'Change Email'),
+        ('delete_account', 'Delete Account'),
     ]
 
     CHANNEL_CHOICES = [
@@ -87,3 +93,19 @@ class MFAChallenge(models.Model):
 
     def __str__(self):
         return f'MFA for {self.user.email} - {self.purpose}'
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    alias = models.CharField(max_length=30, blank=True)
+    bio = models.TextField(blank=True)
+    profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
+
+    def __str__(self):
+        return f"Perfil de {self.user.email}"
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)

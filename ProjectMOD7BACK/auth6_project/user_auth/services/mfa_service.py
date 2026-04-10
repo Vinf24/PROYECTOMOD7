@@ -20,7 +20,14 @@ def create_mfa_challenge(user, purpose):
         ).order_by('-created_at').first()
 
         if existing:
-            return existing, None
+            code = code_6_digits()
+            existing.code_hash = make_password(code)
+            existing.created_at = timezone.now()
+            existing.expires_at = timezone.now() + timedelta(minutes=5)
+            existing.attempts = 0
+            existing.save()
+
+            return existing, code
 
         MFAChallenge.objects.filter(
             user=user,
@@ -45,27 +52,47 @@ def create_mfa_challenge(user, purpose):
 
 def verify_mfa(challenge, code, expected_purpose):
     if challenge.purpose != expected_purpose:
-        return False, "invalid_purpose"
+        return False, {"error": "Propósito inválido"}
 
     if challenge.is_used:
-        return False, "already_used"
+        return False, {"error": "Código ya usado"}
 
     if challenge.expires_at < timezone.now():
-        return False, "expired"
+        return False, {"error": "Código expirado"}
 
     if challenge.attempts >= challenge.max_attempts:
-        return False, "max_attempts"
+        return False, {
+            "error": "Has superado el número máximo de intentos",
+            "attempts_left": 0
+        }
 
     if not check_password(code, challenge.code_hash):
         challenge.attempts += 1
         challenge.save(update_fields=["attempts"])
 
-        if challenge.attempts >= challenge.max_attempts:
-            return False, "max_attempts"
+        attempts_left = challenge.max_attempts - challenge.attempts
 
-        return False, "invalid_code"
+        if challenge.attempts >= challenge.max_attempts:
+            return False, {
+                "error": "Has superado el número máximo de intentos",
+                "attempts_left": 0
+            }
+
+        return False, {
+            "error": "Código incorrecto",
+            "attempts_left": attempts_left
+        }
 
     challenge.is_used = True
     challenge.save(update_fields=["is_used"])
 
     return True, None
+
+def mask_email(email):
+    name, domain = email.split("@")
+    if len(name) <= 2:
+        masked_name = name[0] + "*"
+    else:
+        masked_name = name[:2] + "*" * (len(name) - 2)
+
+    return f"{masked_name}@{domain}"

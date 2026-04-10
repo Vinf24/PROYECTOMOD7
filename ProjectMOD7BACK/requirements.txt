@@ -4,3 +4,4 @@ python-dotenv
 requests
 mysqlclient>=2.2.1
 django-cors-headers
+Pillow

@@ -3,10 +3,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.getElementById("loginForm");
     const emailInput = document.getElementById("emailLogin");
     const claveInput = document.getElementById("claveLogin");
-    const dlgLogin = document.getElementById("dlgLogin");
-    const dlgLoginData = document.getElementById("dlgLoginData");
-    const goLogin = document.getElementById("goLogin");
     const chkRemember = document.getElementById("chkRemember");
+
+    document.getElementById("guestBtn").addEventListener("click", () => {
+        window.location.href = "main.html";
+    });
 
     function validarLogin({ email, clave }) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,8 +20,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function mostrarError(mensaje) {
-        dlgLoginData.textContent = mensaje;
-        showAlert(dlgLogin, 3000);
+        showAlert({
+            type: "danger",
+            message: mensaje
+        });
     }
 
     if (loginForm) {
@@ -28,7 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const btn = document.getElementById("btnLogin");
+
+            if (btn.disabled) return;
+
             btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Ingresando...`;
 
             const email = emailInput.value.trim();
             const clave = claveInput.value.trim();
@@ -38,6 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (error) {
                 mostrarError(error);
+                btn.disabled = false;
+                btn.innerHTML = "Iniciar sesión";
                 return;
             }
 
@@ -77,58 +86,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 if (recordar) {
-                    localStorage.setItem("remember_me", recordar);
+                    localStorage.setItem("remember_me", "true");
                 } else {
                     localStorage.removeItem("remember_me");
                 }
 
                 if (data.mfa_required === false) {
 
-                    window.location.href = "inicio.html";
+                    localStorage.setItem("user", JSON.stringify(data.user));
+
+                    if (data.user.is_staff) {
+                        window.location.href = "control.html";
+                    } else {
+                        window.location.href = "main.html";
+                    }
 
                 } else if (data.challenge_id) {
 
                     localStorage.setItem("challenge_id", data.challenge_id);
+                    localStorage.setItem("masked_email", data.masked_email);
+
+                    if (recordar) {
+                        localStorage.setItem("remember_me", "true");
+                    } else {
+                        localStorage.removeItem("remember_me");
+                    }
 
                     window.location.href = "verify_mfa.html";
                 }
-
-                const leyenda = document.createElement("div");
-                leyenda.textContent = "Iniciando Sesión...";
-                leyenda.classList.add("leyenda-sesion");
-                leyenda.style.zIndex = "9999";
-
-                document.body.appendChild(leyenda);
-
-                void leyenda.offsetWidth;
-
-                leyenda.classList.add("leyenda-entering");
-
-                leyenda.addEventListener("animationend", () => {
-                    leyenda.classList.remove("leyenda-entering");
-
-                    setTimeout(() => {
-                        leyenda.classList.add("leyenda-exiting");
-
-                        leyenda.addEventListener("animationend", () => {
-                            window.location.href = "verify_mfa.html";
-                        }, { once: true });
-
-                    }, 1000);
-
-                }, { once: true });
 
             } catch (error) {
                 mostrarError("Error de conexión con el servidor");
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = "Iniciar sesión";
             }
-        });
-    }
-
-    if (goLogin) {
-        goLogin.addEventListener("click", function () {
-            hideAlert(dlgLogin);
         });
     }
 

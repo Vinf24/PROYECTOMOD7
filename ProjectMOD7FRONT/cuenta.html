@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+    <div class="container my-5">
+        <div class="tarjeta p-4">
+
+            <h2 class="main-title">Mi Cuenta</h2>
+            <p class="text-detail text-center mb-4">Gestiona tu perfil y seguridad</p>
+
+            <div class="mb-3">
+                <label>Nombres</label>
+                <input id="namesInput" class="form-control cont-data">
+            </div>
+
+            <div class="mb-3">
+                <label>Apellidos</label>
+                <input id="lastnamesInput" class="form-control cont-data">
+            </div>
+
+            <button id="saveBtn" class="btn btn-main w-75 mb-3 mx-auto d-block">
+                Guardar cambios
+            </button>
+
+            <hr>
+
+            <div class="text-center d-flex flex-column gap-2">
+
+                <button id="changeEmailBtn" class="btn btn-soft">
+                    Cambiar email
+                </button>
+
+                <button id="changePasswordBtn" class="btn btn-soft">
+                    Cambiar contraseña
+                </button>
+
+                <button id="toggleMFA" class="btn btn-primary">
+                    Activar / Desactivar MFA
+                </button>
+
+                <button id="deleteAccountBtn" class="btn btn-danger">
+                    Eliminar cuenta
+                </button>
+
+                <button id="controlPanelBtn" class="btn btn-main">
+                    Panel de Control
+                </button>
+
+                <div class="text-center mt-2">
+                    <a href="main.html" class="btn btn-primary mt-3 surf" data-title="Menú Principal">Volver al
+                        Menú
+                        Principal</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="globalAlert" class="dlgOverlay" style="display:none;">
+        <div id="alertBox" class="d-flex flex-column gap-2 text-center p-3 rounded-3">
+            <h5 id="alertTitle"></h5>
+            <p id="alertMessage"></p>
+            <div id="alertButtons"></div>
+        </div>
+    </div>
+
+    <script src="js/check_auth.js"></script>
+    <script src="js/alertAnimations.js"></script>
+    <script src="js/alert.js"></script>
+    <script src="js/toggle_mfa.js"></script>
+    <script src="js/get_cookie.js"></script>
+    <script src="js/cuenta.js"></script>
+
+</body>
+
+</html>

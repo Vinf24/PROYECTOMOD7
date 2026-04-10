@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Listado de Usuarios</h2>
+
+        <div class="d-flex justify-content-center gap-2 mb-3">
+            <button class="btn btn-outline-primary filter-btn" data-filter="true">
+                Activos
+            </button>
+            <button class="btn btn-outline-secondary filter-btn" data-filter="false">
+                Inactivos
+            </button>
+            <button class="btn btn-soft filter-btn" data-filter="all">
+                Todos
+            </button>
+        </div>
+
+        <table class="table table-bordered table-hover bg-white">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>MFA</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+            </tbody>
+        </table>
+
+        <div class="text-center mt-3">
+            <a href="control.html" class="btn btn-secondary">Volver</a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="editUserForm">
+
+                        <div class="mb-2">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" id="editNames" class="form-control" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" id="editLastnames" class="form-control" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Nueva contraseña</label>
+                            <input type="password" id="editPassword" class="form-control">
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" id="editMFA" class="form-check-input">
+                            <label class="form-check-label">MFA requerido</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" id="editActive" class="form-check-input">
+                            <label class="form-check-label">Usuario activo</label>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="saveEditUser" class="btn btn-primary">Guardar</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="globalAlert" class="dlgOverlay" style="display:none;">
+        <div id="alertBox" class="d-flex flex-column gap-2 text-center p-3 rounded-3">
+
+            <h5 id="alertTitle" class="mb-1"></h5>
+            <p id="alertMessage" class="mb-2"></p>
+
+            <div id="alertButtons" class="d-flex justify-content-center gap-2">
+                <!-- botones dinámicos -->
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/check_auth.js"></script>
+    <script src="js/alertAnimations.js"></script>
+    <script src="js/alert.js"></script>
+    <script src="js/get_cookie.js"></script>
+    <script src="js/users.js"></script>
+
+</body>
+
+</html>

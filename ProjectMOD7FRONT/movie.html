@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Película</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../img/icon-Alke-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../img/icon-Alke-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="../img/icon-Alke-48.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="overflow-y-scroll">
+    <div class="navbar nav-stack d-flex justify-content-end gap-2 px-3">
+        <button class="btn btn-primary" onclick="history.back()">
+            ⬅ Volver a la página anterior
+        </button>
+    </div>
+    <div class="max-container mx- 0 my-5">
+        <div id="movieDetail" class="tarjeta p-4"></div>
+
+        <div id="reviewSection" class="tarjeta p-3 p-md-4 mt-3">
+            <h5 class="fs-2 mb-4">Agregar reseña</h5>
+            <input type="number" id="rating" class="form-control mb-2" placeholder="Nota (1-10)">
+            <textarea id="comment" class="form-control mb-2" placeholder="Comentario"></textarea>
+            <button id="submitReview" class="btn btn-primary w-75 d-block mx-auto my-4">Enviar</button>
+        </div>
+
+        <h3 class=" main-title mt-4">Reseñas</h3>
+        <div id="reviewsContainer" class="tarjeta p-4 mb-3"></div>
+    </div>
+
+    <div id="globalAlert" class="dlgOverlay" style="display:none;">
+        <div id="alertBox" class="d-flex flex-column gap-2 text-center p-3 rounded-3">
+
+            <h5 id="alertTitle" class="mb-1"></h5>
+            <p id="alertMessage" class="mb-2"></p>
+
+            <div id="alertButtons" class="d-flex justify-content-center gap-2">
+                <!-- botones dinámicos -->
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+    <script src="js/alertAnimations.js"></script>
+    <script src="js/alert.js"></script>
+    <script src="js/get_cookie.js"></script>
+    <script src="js/movie.js"></script>
+</body>
+
+</html>

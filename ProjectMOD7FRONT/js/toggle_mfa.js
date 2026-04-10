@@ -2,13 +2,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const btn = document.getElementById("toggleMFA");
 
-    const dlg = document.getElementById("dlgMFAStatus");
-    const dlgData = document.getElementById("dlgMFAStatusData");
-    const goBtn = document.getElementById("goMFAStatus");
-
-    function mostrarMensaje(msg) {
-        dlgData.textContent = msg;
-        showAlert(dlg, 3000);
+    function mostrarMensaje(msg, type = "info") {
+        showAlert({
+            type: type,
+            message: msg
+        });
     }
 
     btn.addEventListener("click", async () => {
@@ -24,21 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (!response.ok) {
-                mostrarMensaje("Error al cambiar MFA");
+                mostrarMensaje("Error al cambiar MFA", "danger");
                 return;
             }
 
             mostrarMensaje(
-                "MFA ahora está: " + (data.mfa_required ? "ACTIVO" : "INACTIVO")
+                "MFA ahora está: " + (data.mfa_required ? "ACTIVO" : "INACTIVO"),
+                "success"
             );
+
+            window.mfaEnabled = data.mfa_required;
+            window.updateMFAButton();
 
         } catch (error) {
             mostrarMensaje("Error de conexión");
         }
-    });
-
-    goBtn.addEventListener("click", () => {
-        hideAlert(dlg);
     });
 
 });

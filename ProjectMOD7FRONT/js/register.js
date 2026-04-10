@@ -3,25 +3,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const registerForm = document.getElementById("registerForm");
     const registroModal = document.getElementById("registroModal");
 
-    const dlgRegister = document.getElementById("dlgRegister");
-    const dlgRegisterData = document.getElementById("dlgRegisterData");
-    const goRegister = document.getElementById("goRegister");
-
     function validarRegistro({ nombre, apellido, email, clave, claveRepeat }) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!nombre || !apellido) return "Ingrese nombre y apellido";
+        if (nombre.length < 2) return "Nombre muy corto";
+        if (apellido.length < 2) return "Apellido muy corto";
+
         if (!email) return "Ingrese un correo electrónico";
+        if (!emailRegex.test(email)) return "Correo inválido";
+
         if (!clave) return "Ingrese una contraseña";
-        if (!emailRegex.test(email)) return "Ingrese un correo electrónico válido";
-        if (clave !== claveRepeat) return "Confirme la contraseña";
+        if (clave.length < 6) return "La contraseña debe tener al menos 6 caracteres";
+
+        if (clave !== claveRepeat) return "Las contraseñas no coinciden";
 
         return null;
     }
 
-    function mostrarMensaje(mensaje) {
-        dlgRegisterData.textContent = mensaje;
-        showAlert(dlgRegister, 3000);
+    function mostrarMensaje(mensaje, type = "info") {
+        showAlert({
+            type: type,
+            message: mensaje
+        });
     }
 
     if (registerForm) {
@@ -30,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const btn = document.getElementById("register");
             btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Registrando...`;
 
             const nombre = document.getElementById("nombre").value.trim();
             const apellido = document.getElementById("apellido").value.trim();
@@ -46,7 +51,15 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (error) {
-                mostrarMensaje(error);
+                mostrarMensaje(error, "danger");
+
+                if (!nombre) document.getElementById("nombre").focus();
+                else if (!apellido) document.getElementById("apellido").focus();
+                else if (!email) document.getElementById("regEmail").focus();
+                else if (!clave) document.getElementById("regClave").focus();
+
+                btn.disabled = false;
+                btn.innerHTML = "Registrarse";
                 return;
             }
 
@@ -75,28 +88,30 @@ document.addEventListener("DOMContentLoaded", function () {
                         data.detail ||
                         "Error al registrar";
 
-                    mostrarMensaje(mensaje);
+                    mostrarMensaje(mensaje, "danger");
                     return;
                 }
 
-                mostrarMensaje(`Usuario ${data.user.names} registrado correctamente`);
+                btn.disabled = false;
+
+                mostrarMensaje(`Usuario ${data.user.names} registrado correctamente`, "success");
 
                 this.reset();
+
+                setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(registroModal);
+                    modal.hide();
+                }, 500);
 
                 const modal = bootstrap.Modal.getInstance(registroModal);
                 modal.hide();
 
             } catch (error) {
-                mostrarMensaje("Error de conexión con el servidor");
+                mostrarMensaje("Error de conexión con el servidor", "danger");
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = "Registrarse";
             }
-        });
-    }
-
-    if (goRegister) {
-        goRegister.addEventListener("click", function () {
-            hideAlert(dlgRegister);
         });
     }
 

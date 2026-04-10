@@ -1,17 +1,21 @@
-from django.shortcuts import render
+from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework import status
-from user_auth.serializers import LoginSerializer, VerifyMFASerializer, RegisterSerializer
-from user_auth.models import MFAChallenge
-from django.contrib.auth.hashers import make_password
-from user_auth.services.mfa_service import create_mfa_challenge, verify_mfa
-import secrets
-from django.utils import timezone
+from user_auth.serializers import (
+    LoginSerializer, VerifyMFASerializer, RegisterSerializer,
+    UserSerializer, UserUpdateSerializer, ProfileSerializer
+    )
+from user_auth.models import MFAChallenge, CustomUser
+from user_auth.services.mfa_service import create_mfa_challenge, mask_email, verify_mfa
 from user_auth.services.email_service import send_mfa_code_email
-from rest_framework.permissions import IsAuthenticated
+from user_auth.services.rate_limit_service import is_rate_limited
+from user_auth.permissions import IsOwner
+from django.utils import timezone
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 
@@ -30,11 +34,18 @@ class RegisterView(APIView):
             }
         }, status=status.HTTP_201_CREATED)
 
+
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+
+        if is_rate_limited(request, "login", limit=5, window=60):
+            return Response(
+                {"error": "Demasiados intentos. Intenta más tarde."},
+                status=429
+            )
 
         if user.mfa_required:
             mfa_challenge, code = create_mfa_challenge(user, "login")
@@ -42,7 +53,8 @@ class LoginView(APIView):
 
             return Response({
                 "message": "MFA required", 
-                "challenge_id": mfa_challenge.id
+                "challenge_id": mfa_challenge.id,
+                "masked_email": mask_email(user.email)
             }, status=status.HTTP_200_OK)
 
         login(request, user)
@@ -60,13 +72,9 @@ class LoginView(APIView):
         return Response({
             "message": "Login successful",
             "mfa_required": False,
-            "user": {
-                "id": user.id,
-                "names": user.names,
-                "lastnames": user.lastnames,
-                "email": user.email
-            }
+            "user": UserSerializer(user).data
         }, status=status.HTTP_200_OK)
+
 
 class MFAChallengeView(APIView):
     def post(self, request):
@@ -75,32 +83,23 @@ class MFAChallengeView(APIView):
         challenge_id = serializer.validated_data['challenge_id']
         code = serializer.validated_data['code']
 
+        if is_rate_limited(request, "verify_mfa", limit=5, window=60):
+            return Response(
+                {"error": "Demasiados intentos de verificación"},
+                status=429
+            )
+
         try:
             mfa_challenge = MFAChallenge.objects.get(id=challenge_id)
         except MFAChallenge.DoesNotExist:
             return Response({"error": "Invalid MFA challenge"}, status=status.HTTP_400_BAD_REQUEST)
 
-        valid, reason = verify_mfa(mfa_challenge, code, "login")
+        purpose = serializer.validated_data['purpose']
+
+        valid, reason = verify_mfa(mfa_challenge, code, purpose)
 
         if not valid:
-            if reason == "max_attempts":
-                mfa_challenge.delete()
-
-                return Response(
-                    {"error": "MFA attempts exceeded"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-            if reason == "expired":
-                return Response(
-                    {"error": "MFA expired"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-            return Response(
-                {"error": "Invalid MFA code"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(reason or {"error": "Error MFA"}, status=400)
 
         user = mfa_challenge.user
         login(request, user)
@@ -120,11 +119,9 @@ class MFAChallengeView(APIView):
 
         return Response({
             "message": "MFA verification successful",
-            "user": {
-                "id": user.id,
-                "email": user.email
-            }
+            "user": UserSerializer(user).data
         }, status=status.HTTP_200_OK)
+
 
 class ToggleMFAView(APIView):
     permission_classes = [IsAuthenticated]
@@ -139,11 +136,13 @@ class ToggleMFAView(APIView):
             "mfa_required": user.mfa_required
         })
 
+
 class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({"message": "Logged out"})
-    
+
+
 class CheckSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -152,16 +151,316 @@ class CheckSessionView(APIView):
             "authenticated": True,
             "user": {
                 "id": request.user.id,
-                "email": request.user.email
+                "email": request.user.email,
+                "is_staff": request.user.is_staff
             }
         })
 
-def login_page(request):
-    return render(request, 'login.html')
 
-def verify_mfa_page(request):
-    return render(request, 'verify_mfa.html')
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
-@login_required
-def inicio_page(request):
-    return render(request, 'inicio.html')
+    def get(self, request):
+        active = request.query_params.get('active')
+
+        users = CustomUser.objects.all()
+
+        if active == "true":
+            users = users.filter(is_active=True)
+        elif active == "false":
+            users = users.filter(is_active=False)
+
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, pk):
+        user = get_object_or_404(CustomUser, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserUpdateView(APIView):
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def patch(self, request, pk):
+        user = get_object_or_404(CustomUser, pk=pk)
+
+        self.check_object_permissions(request, user)
+
+        serializer = UserUpdateSerializer(
+            user,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors)
+
+
+class UserDeleteView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def delete(self, request, pk):
+        user = get_object_or_404(CustomUser, pk=pk)
+
+        self.check_object_permissions(request, user)
+
+        user.is_active = False
+        user.save()
+
+        return Response({"message": "Usuario desactivado"})
+
+
+class DeleteMyAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request):
+        user = request.user
+
+        if user.mfa_required and not request.data.get("mfa_code"):
+            mfa_challenge, code = create_mfa_challenge(user, "delete_account")
+            send_mfa_code_email(user, code)
+
+            return Response({
+                "mfa_required": True,
+                "challenge_id": str(mfa_challenge.id),
+                "masked_email": mask_email(user.email)
+            })
+
+        if user.mfa_required:
+            challenge_id = request.data.get("challenge_id")
+            mfa_code = request.data.get("mfa_code")
+
+            mfa_challenge = MFAChallenge.objects.get(id=challenge_id)
+
+            if mfa_challenge.user != user:
+                return Response({"error": "Challenge inválido"}, status=403)
+
+            if mfa_challenge.purpose != "delete_account":
+                return Response({"error": "Purpose inválido"}, status=400)
+
+            valid, reason = verify_mfa(mfa_challenge, mfa_code, "delete_account")
+
+            if not valid:
+                return Response(reason, status=400)
+
+        user.is_active = False
+        user.save()
+
+        logout(request)
+
+        return Response({"message": "Cuenta eliminada"})
+
+class AdminPanelView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        return Response({
+            "message": "Welcome to the admin panel",
+            "user": request.user.email
+        })
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        profile = request.user.profile
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        profile = request.user.profile
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(UserSerializer(request.user).data)
+
+    def patch(self, request):
+        serializer = UserUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=400)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        if not user.check_password(old_password):
+            return Response({"error": "Contraseña actual incorrecta"}, status=400)
+
+        if new_password != confirm_password:
+            return Response({"error": "Las contraseñas no coinciden"}, status=400)
+
+        if user.mfa_required and not request.data.get("mfa_code"):
+
+            mfa_challenge, code = create_mfa_challenge(user, "change_password")
+            send_mfa_code_email(user, code)
+
+            return Response({
+                "mfa_required": True,
+                "challenge_id": str(mfa_challenge.id),
+                "masked_email": mask_email(user.email)
+            })
+
+        if user.mfa_required:
+            challenge_id = request.data.get("challenge_id")
+            mfa_code = request.data.get("mfa_code")
+
+            mfa_challenge = MFAChallenge.objects.get(id=challenge_id)
+
+            if mfa_challenge.user != user:
+                return Response({"error": "Challenge inválido"}, status=403)
+
+            if mfa_challenge.purpose != "change_password":
+                return Response({"error": "Purpose inválido"}, status=400)
+
+            valid, reason = verify_mfa(mfa_challenge, mfa_code, "change_password")
+
+            if not valid:
+                return Response(reason, status=400)
+
+        validate_password(new_password, user)
+
+        user.set_password(new_password)
+        user.save()
+
+        logout(request)
+
+        return Response({"message": "Contraseña actualizada"})
+
+
+class ChangeEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        current_email = request.data.get("current_email")
+        new_email = request.data.get("new_email")
+
+        if user.email != current_email:
+            return Response({"error": "Email actual incorrecto"}, status=400)
+
+        if CustomUser.objects.filter(email=new_email).exists():
+            return Response({"error": "El email ya está en uso"}, status=400)
+
+        if user.mfa_required and not request.data.get("mfa_code"):
+
+            mfa_challenge, code = create_mfa_challenge(user, "change_email")
+            send_mfa_code_email(user, code)
+
+            return Response({
+                "mfa_required": True,
+                "challenge_id": str(mfa_challenge.id),
+                "masked_email": mask_email(user.email)
+            })
+
+        if user.mfa_required:
+            challenge_id = request.data.get("challenge_id")
+            mfa_code = request.data.get("mfa_code")
+
+            mfa_challenge = MFAChallenge.objects.get(id=challenge_id)
+
+            if mfa_challenge.user != user:
+                return Response({"error": "Challenge inválido"}, status=403)
+
+            if mfa_challenge.purpose != "change_email":
+                return Response({"error": "Purpose inválido"}, status=400)
+
+            valid, reason = verify_mfa(mfa_challenge, mfa_code, "change_email")
+
+            if not valid:
+                return Response(reason, status=400)
+
+        user.email = new_email
+        user.is_email_verified = False
+        user.save()
+
+        logout(request)
+
+        return Response({"message": "Email actualizado"})
+
+
+class ResendMFAView(APIView):
+    def post(self, request):
+
+        if is_rate_limited(request, "resend_mfa", limit=3, window=60):
+            return Response(
+                {"error": "Demasiadas solicitudes de código"},
+                status=429
+            )
+
+        challenge_id = request.data.get("challenge_id")
+
+        if not challenge_id:
+            return Response({"error": "challenge_id requerido"}, status=400)
+
+        try:
+            old_challenge = MFAChallenge.objects.get(id=challenge_id)
+        except MFAChallenge.DoesNotExist:
+            return Response({"error": "Challenge inválido"}, status=400)
+
+        if old_challenge.is_used:
+            return Response({"error": "Challenge ya utilizado"}, status=400)
+
+        user = old_challenge.user
+        purpose = old_challenge.purpose
+
+        last_challenge = MFAChallenge.objects.filter(
+            user=user,
+            purpose=purpose,
+            is_used=False
+        ).order_by('-created_at').first()
+
+        if last_challenge and (timezone.now() - last_challenge.created_at) < timedelta(seconds=30):
+            return Response(
+                {"error": "Debes esperar antes de solicitar otro código"},
+                status=429
+            )
+
+        MFAChallenge.objects.filter(
+            user=user,
+            purpose=purpose,
+            is_used=False
+        ).update(is_used=True)
+
+        new_challenge, code = create_mfa_challenge(user, purpose)
+        send_mfa_code_email(user, code)
+
+        return Response({
+            "challenge_id": str(new_challenge.id),
+            "masked_email": mask_email(user.email)
+        })

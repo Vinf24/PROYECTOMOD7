@@ -1,4 +1,4 @@
-function showAlert(element, duration = 0) {
+function showAlertAnimation(element, duration = 0) {
     if (!element) return;
 
     if (element._alertTimeout) {
@@ -13,7 +13,6 @@ function showAlert(element, duration = 0) {
 
     content.classList.remove("alert-exiting");
 
-    // Forzar reflow
     void content.offsetWidth;
 
     content.classList.add("alert-entering");
@@ -24,12 +23,12 @@ function showAlert(element, duration = 0) {
 
     if (duration > 0) {
         element._alertTimeout = setTimeout(() => {
-            hideAlert(element);
+            hideAlertAnimation(element);
         }, duration);
     }
 }
 
-function hideAlert(element, callback) {
+function hideAlertAnimation(element, callback) {
     if (!element) return;
 
     if (element._alertTimeout) {
@@ -52,14 +51,4 @@ function hideAlert(element, callback) {
         element.style.display = "none";
         if (callback) callback();
     }, { once: true });
-}
-
-function toggleAlert(element) {
-    if (!element) return;
-
-    if (element.style.display === "none" || !element.style.display) {
-        showAlert(element);
-    } else {
-        hideAlert(element);
-    }
 }
