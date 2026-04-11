@@ -520,7 +520,8 @@ hr.linea {
     margin-top: 5rem;
 }
 
-#searchInput::placeholder {
+#searchInput::placeholder,
+#searchReviews::placeholder {
     color: #bbb;
 }
 
