@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function showControlButton() {
         if (!controlPanelBtn) return;
 
-        controlPanelBtn.style.display = "block";
+        controlPanelBtn.classList.remove("d-none");
 
         controlPanelBtn.addEventListener("click", () => {
             window.location.href = "control.html";

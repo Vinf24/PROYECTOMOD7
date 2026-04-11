@@ -7,10 +7,14 @@ from user_auth.models import Profile
 class ReviewSerializer(serializers.ModelSerializer):
     alias = serializers.SerializerMethodField()
     user_id = serializers.IntegerField(source='user.id', read_only=True)
+    movie_title = serializers.CharField(source='movie.title', read_only=True)
+    movie_id = serializers.IntegerField(source='movie.id', read_only=True)
 
     class Meta:
         model = Review
-        fields = ['id', 'rating', 'comment', 'created_at', 'alias', 'user_id']
+        fields = ['id', 'rating', 'comment', 
+                  'created_at', 'alias', 'user_id',
+                  'movie_id', 'movie_title']
 
     def get_alias(self, obj):
         profile = Profile.objects.filter(user=obj.user).first()
@@ -32,7 +36,7 @@ class MovieListSerializer(serializers.ModelSerializer):
     def get_poster_url(self, obj):
         if obj.poster:
             return obj.poster.url
-        return "/media/posters/default.jpg"
+        return None
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):
@@ -78,7 +82,7 @@ class MovieDetailSerializer(serializers.ModelSerializer):
         if obj.poster:
             return request.build_absolute_uri(obj.poster.url)
 
-        return request.build_absolute_uri('/media/posters/default.jpg')
+        return None
 
 class MovieCreateSerializer(serializers.ModelSerializer):
     poster = serializers.ImageField(required=False, allow_null=True)

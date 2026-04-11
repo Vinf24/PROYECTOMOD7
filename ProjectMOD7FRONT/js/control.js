@@ -4,6 +4,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const mainPageBtn = document.getElementById("mainPageBtn");
     const addMovieBtn = document.getElementById("addMovieBtn");
 
+    let currentSearch = "";
+    let currentPage = 1;
+    let totalPages = 1;
+    let searchTimeout;
+
     let editingMovieId = null;
 
     if (usersListBtn) {
@@ -53,40 +58,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     const movieAdminList = document.getElementById("movieAdminList");
 
     async function loadMoviesAdmin() {
-        const response = await fetch("http://localhost:8000/movies/");
+
+        let url = "http://localhost:8000/movies/";
+        let params = [];
+
+        if (currentSearch) {
+            params.push(`search=${encodeURIComponent(currentSearch)}`);
+        }
+
+        params.push(`page=${currentPage}`);
+
+        if (params.length > 0) {
+            url += `?${params.join("&")}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         movieAdminList.innerHTML = "";
 
+        totalPages = data.total_pages;
+        currentPage = data.current_page;
+
+        document.getElementById("pageInfo").textContent =
+            `Página ${currentPage} de ${totalPages}`;
+
+        document.getElementById("prevPage").disabled = currentPage <= 1;
+        document.getElementById("nextPage").disabled = currentPage >= totalPages;
+
         data.results.forEach(movie => {
-            const div = document.createElement("div");
 
-            div.classList.add("review-card", "p-2");
+            const col = document.createElement("div");
+            col.classList.add("col-12", "col-sm-6", "col-md-4");
 
-            div.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center gap-2">
+            const posterUrl = movie.poster_url
+                ? `http://localhost:8000${movie.poster}`
+                : "img/posters/default.png";
 
-                    <div>
-                        <h6 class="mb-1">${movie.title}</h6>
-                        <small class="text-light">ID: ${movie.id}</small>
-                    </div>
+            col.innerHTML = `
+            <div class="card h-100 p-2">
 
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-soft btn-sm" onclick="openEditModal(${movie.id})">
-                            ✏️
-                        </button>
+                <img src="${posterUrl}" style="height:200px; object-fit:cover;">
 
-                        <button class="btn btn-outline-danger btn-sm" onclick="deleteMovie(${movie.id})">
-                            🗑️
-                        </button>
-                    </div>
-
+                <div class="mt-2">
+                    <h6>${movie.title}</h6>
+                    <small>ID: ${movie.id}</small>
                 </div>
-            `;
 
-            movieAdminList.appendChild(div);
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-soft btn-sm" onclick="openEditModal(${movie.id})">✏️</button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteMovie(${movie.id})">🗑️</button>
+                </div>
+
+            </div>
+        `;
+
+            movieAdminList.appendChild(col);
         });
     }
+
+    window.loadMoviesAdmin = loadMoviesAdmin;
 
     async function createMovie(movieData) {
 
@@ -125,6 +156,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
     }
+
+    document.getElementById("searchInput").addEventListener("input", () => {
+        clearTimeout(searchTimeout);
+
+        searchTimeout = setTimeout(() => {
+            currentSearch = document.getElementById("searchInput").value;
+            currentPage = 1;
+            loadMoviesAdmin();
+        }, 400);
+    });
+
+    document.getElementById("prevPage").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadMoviesAdmin();
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadMoviesAdmin();
+        }
+    });
 
     if (addMovieBtn) {
 

@@ -30,6 +30,73 @@ document.addEventListener("DOMContentLoaded", async () => {
     const movieDetail = document.getElementById("movieDetail");
     const reviewsContainer = document.getElementById("reviewsContainer");
 
+    let currentPage = 1;
+    let totalPages = 1;
+
+    async function loadReviews() {
+
+        let url = `http://localhost:8000/movies/reviews/?movie_id=${movieId}&page=${currentPage}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            reviewsContainer.innerHTML = "";
+
+            totalPages = data.total_pages;
+            currentPage = data.current_page;
+
+            document.getElementById("reviewsPageInfo").textContent =
+                `Página ${currentPage} de ${totalPages}`;
+
+            document.getElementById("prevReviews").disabled = currentPage <= 1;
+            document.getElementById("nextReviews").disabled = currentPage >= totalPages;
+
+            if (data.results.length === 0) {
+                reviewsContainer.innerHTML = "<p>No hay reseñas</p>";
+                return;
+            }
+
+            data.results.forEach(r => {
+                const div = document.createElement("div");
+                div.classList.add("card", "mb-2", "p-2");
+
+                div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <strong class="link-profile">
+                        ${r.alias}
+                    </strong>
+                    <span>⭐ ${r.rating}</span>
+                </div>
+                <p class="mb-0">${r.comment}</p>
+            `;
+
+                div.querySelector("strong").addEventListener("click", () => {
+                    window.location.href = `profile.html?id=${r.user_id}`;
+                });
+
+                reviewsContainer.appendChild(div);
+            });
+
+        } catch (error) {
+            console.error("Error cargando reseñas:", error);
+        }
+    }
+
+    document.getElementById("prevReviews").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadReviews();
+        }
+    });
+
+    document.getElementById("nextReviews").addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadReviews();
+        }
+    });
+
     async function loadMovie() {
 
         const response = await fetch(`http://localhost:8000/movies/${movieId}/`, {
@@ -190,37 +257,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        const posterUrl = movie.poster_url;
+        const posterUrl = movie.poster_url
+            ? movie.poster_url
+            : "img/posters/default.png";
 
         movieDetail.innerHTML = `
-    <h1 class="display-5 fw-bold my-3">${movie.title}</h1>
-    <img src="${posterUrl}" width="200">
-    <p class="text-detail mt-2">${movie.description}</p>
-    <p class="fs-4 fw-semibold">⭐ ${movie.average_rating ?? 'Sin notas'}</p>
-`;
-
-        reviewsContainer.innerHTML = "";
-
-        movie.reviews.forEach(r => {
-            const div = document.createElement("div");
-            div.classList.add("card", "mb-2", "p-2");
-
-            div.innerHTML = `
-        <div class="d-flex justify-content-between">
-            <strong style="cursor:pointer; color:blue;">
-                ${r.alias}
-            </strong>
-            <span>⭐ ${r.rating}</span>
-        </div>
-        <p class="mb-0">${r.comment}</p>
+            <h1 class="display-5 fw-bold my-3">${movie.title}</h1>
+            <img src="${posterUrl}" width="200">
+            <p class="text-detail mt-2">${movie.description}</p>
+            <p class="fs-4 fw-semibold">⭐ ${movie.average_rating ?? 'Sin notas'}</p>
         `;
 
-            div.querySelector("strong").addEventListener("click", () => {
-                window.location.href = `profile.html?id=${r.user_id}`;
-            });
-
-            reviewsContainer.appendChild(div);
-        });
+        await loadReviews();
     }
 
     await checkSession();

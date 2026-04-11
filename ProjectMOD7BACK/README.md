@@ -36,11 +36,27 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ```bash
 git clone https://github.com/Vinf24/PROYECTOMOD7.git
-cd ProjectMODBACK
+```
+
+La carpeta central es /PROYECTOMOD7/
+
+Es necesario entender que backend y frontend, deben desplegarse desde
+sus respectivas carpetas padre.
+
+---
+
+## Levantar el backend del proyecto en Docker
+
+Desde la carpeta /PROYECTOMOD7/
+
+Necesario ir a la carpeta padre del backend (Donde se ubica manage.py)
+
+```bash
+cd ProjectMOD7BACK
 cd auth6_project
 ```
 
-## Levantar el proyecto en Docker
+Levantar contenedor
 
 ```bash
 docker compose up --build
@@ -63,6 +79,21 @@ docker compose exec pauth6-api python manage.py migrate
 ```bash
 docker compose exec pauth6-api python manage.py createsuperuser
 ```
+
+---
+
+## Levantar el frontend del proyecto en Live Server
+
+Desde la carpeta /PROYECTOMOD7/
+
+Es necesario llegar a la carpeta padre del frontend
+
+```bash
+cd ProjectMOD7FRONT
+```
+
+Una vez ahi con click derecho en algún html del proyecto
+- Open with Live Server
 
 ---
 
@@ -356,7 +387,7 @@ http://localhost:8000/media/posters/batman.jpg
 
 Si una película no tiene imagen:
 
-/media/posters/default.jpg
+/img/posters/default.png
 
 ---
 
@@ -399,6 +430,3 @@ El servicio de base de datos expone el puerto:
 -	Manejo de imágenes desde backend
 
 ---
-
-
-

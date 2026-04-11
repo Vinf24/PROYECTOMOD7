@@ -1,7 +1,10 @@
 from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated, IsAdminUser, 
+    IsAuthenticatedOrReadOnly, AllowAny
+    )
 from rest_framework import status
 from user_auth.serializers import (
     LoginSerializer, VerifyMFASerializer, RegisterSerializer,
@@ -144,16 +147,22 @@ class LogoutView(APIView):
 
 
 class CheckSessionView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
+
+        if request.user.is_authenticated:
+            return Response({
+                "authenticated": True,
+                "user": {
+                    "id": request.user.id,
+                    "email": request.user.email,
+                    "is_staff": request.user.is_staff
+                }
+            })
+
         return Response({
-            "authenticated": True,
-            "user": {
-                "id": request.user.id,
-                "email": request.user.email,
-                "is_staff": request.user.is_staff
-            }
+            "authenticated": False
         })
 
 

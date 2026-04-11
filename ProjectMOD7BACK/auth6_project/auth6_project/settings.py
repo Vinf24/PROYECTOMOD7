@@ -151,6 +151,9 @@ CSRF_TRUSTED_ORIGINS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+os.makedirs(os.path.join(MEDIA_ROOT, "posters"), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, "profiles"), exist_ok=True)
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

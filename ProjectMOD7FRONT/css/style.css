@@ -552,6 +552,16 @@ hr.linea {
     padding: 0.6rem 0.75rem;
 }
 
+.link-profile {
+    cursor: pointer;
+    color: blue;
+    text-decoration: none;
+}
+
+.link-profile:hover {
+    text-decoration: underline;
+}
+
 /* Animaciones para alertas */
 @keyframes slideUpBounce {
     0% {

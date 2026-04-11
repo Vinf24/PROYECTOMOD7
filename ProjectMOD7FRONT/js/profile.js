@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     let editMode = false;
     let currentProfile = {};
 
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentSearch = "";
+    let searchTimeout;
+
     try {
         const resp = await fetch("http://localhost:8000/auth/check-session/", {
             method: "GET",
@@ -50,9 +55,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         aliasEl.innerText = data.alias || "Sin alias";
         bioEl.innerText = data.bio || "Sin descripción";
 
-        if (data.profile_image) {
-            profileImage.src = `http://localhost:8000${data.profile_image}`;
-        }
+        profileImage.src = data.profile_image
+            ? `http://localhost:8000${data.profile_image}`
+            : "img/profiles/default.png";
 
     } catch (error) {
         console.error(error);
@@ -133,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         aliasEl.innerText = originalAlias || "Sin alias";
         bioEl.innerText = originalBio || "Sin descripción";
 
-        profileImage.src = originalImage || "http://localhost:8000/media/profiles/default.png";
+        profileImage.src = originalImage || "img/profiles/default.png";
 
         imageInput.value = "";
         imageInput.classList.add("d-none");
@@ -151,111 +156,135 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    async function loadMyReviews() {
+    async function loadReviews() {
+
         const container = document.getElementById("myReviewsContainer");
 
+        let url = "http://localhost:8000/movies/reviews/";
+        let params = [];
+
+        if (userId) {
+            params.push(`user_id=${userId}`);
+        }
+
+        if (!userId) {
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user) {
+                params.push(`user_id=${user.id}`);
+            }
+        }
+
+        if (currentSearch) {
+            params.push(`search=${encodeURIComponent(currentSearch)}`);
+        }
+
+        params.push(`page=${currentPage}`);
+
+        if (params.length > 0) {
+            url += `?${params.join("&")}`;
+        }
+
         try {
-            const response = await fetch("http://localhost:8000/movies/my-reviews/", {
+            const response = await fetch(url, {
                 credentials: "include"
             });
 
-            if (!response.ok) return;
-
-            const reviews = await response.json();
+            const data = await response.json();
 
             container.innerHTML = "";
 
-            if (reviews.length === 0) {
-                container.innerHTML = "<p class='text-light'>No has hecho reseñas</p>";
+            totalPages = data.total_pages;
+            currentPage = data.current_page;
+
+            document.getElementById("reviewsPageInfo").textContent =
+                `Página ${currentPage} de ${totalPages}`;
+
+            document.getElementById("prevReviews").disabled = currentPage <= 1;
+            document.getElementById("nextReviews").disabled = currentPage >= totalPages;
+
+            if (data.results.length === 0) {
+                container.innerHTML = "<p class='text-light'>No hay reseñas</p>";
                 return;
             }
 
-            reviews.forEach(r => {
+            data.results.forEach(r => {
+
                 const div = document.createElement("div");
-                div.classList.add("review-card", "p-2", "mb-2");
+                div.classList.add("card", "p-2", "mb-2");
 
                 div.innerHTML = `
-                <h6 class="clickable-user">
-                    🎬 ${r.movie_title}
-                </h6>
-                <p class="review-text">⭐ ${r.rating} - ${r.comment}</p>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-info edit-btn">Editar</button>
-                    <button class="btn btn-sm btn-danger delete-btn">Eliminar</button>
+                <div class="d-flex justify-content-between">
+                    <h6 class="link-profile">🎬 ${r.movie_title}</h6>
+                    <span>${!userId ? `
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary edit-btn">✏️</button>
+                        <button class="btn btn-sm btn-outline-danger delete-btn">🗑️</button>
+                    </div>
+                ` : ""}</span>
                 </div>
+
+                <p class="mb-2">⭐ ${r.rating} - ${r.comment}</p>
             `;
 
                 div.querySelector("h6").addEventListener("click", () => {
                     window.location.href = `movie.html?id=${r.movie_id}`;
                 });
 
-                div.querySelector(".delete-btn").addEventListener("click", async () => {
-                    showAlert({
-                        type: "danger",
-                        title: "Eliminar reseña",
-                        message: "¿Estás seguro?",
-                        confirmText: "Eliminar",
-                        cancelText: "Cancelar",
-                        onConfirm: async () => {
+                if (!userId) {
+                    div.querySelector(".delete-btn").addEventListener("click", async () => {
+                        showAlert({
+                            type: "danger",
+                            title: "Eliminar reseña",
+                            message: "¿Estás seguro?",
+                            confirmText: "Eliminar",
+                            cancelText: "Cancelar",
+                            onConfirm: async () => {
 
-                            const resp = await fetch(`http://localhost:8000/movies/reviews/${r.id}/delete/`, {
-                                method: "DELETE",
-                                credentials: "include",
-                                headers: {
-                                    "X-CSRFToken": getCookie("csrftoken")
+                                const resp = await fetch(`http://localhost:8000/movies/reviews/${r.id}/delete/`, {
+                                    method: "DELETE",
+                                    credentials: "include",
+                                    headers: {
+                                        "X-CSRFToken": getCookie("csrftoken")
+                                    }
+                                });
+
+                                if (resp.ok) {
+                                    loadReviews();
                                 }
-                            });
-
-                            if (resp.ok) {
-                                loadMyReviews();
                             }
-                        }
+                        });
                     });
-                });
 
-                div.querySelector(".edit-btn").addEventListener("click", async () => {
+                    div.querySelector(".edit-btn").addEventListener("click", async () => {
 
-                    showAlert({
-                        type: "info",
-                        title: "Editar reseña",
-                        html: `
-                            <input id="rating" type="number" class="form-control mb-2" value="${r.rating}" placeholder="Nota (1-10)">
+                        showAlert({
+                            type: "info",
+                            title: "Editar reseña",
+                            html: `
+                            <input id="rating" type="number" class="form-control mb-2" value="${r.rating}">
                             <textarea id="comment" class="form-control">${r.comment}</textarea>
                         `,
-                        confirmText: "Guardar",
-                        cancelText: "Cancelar",
-                        onConfirm: async ({ rating, comment }) => {
+                            confirmText: "Guardar",
+                            cancelText: "Cancelar",
+                            onConfirm: async ({ rating, comment }) => {
 
-                            if (!rating || rating < 1 || rating > 10) {
-                                showAlert({ type: "danger", message: "Nota inválida" });
-                                return false;
+                                const resp = await fetch(`http://localhost:8000/movies/reviews/${r.id}/`, {
+                                    method: "PATCH",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRFToken": getCookie("csrftoken")
+                                    },
+                                    body: JSON.stringify({ rating, comment })
+                                });
+
+                                if (resp.ok) {
+                                    loadReviews();
+                                }
                             }
-
-                            if (!comment.trim()) {
-                                showAlert({ type: "danger", message: "Comentario vacío" });
-                                return false;
-                            }
-
-                            const resp = await fetch(`http://localhost:8000/movies/reviews/${r.id}/`, {
-                                method: "PATCH",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRFToken": getCookie("csrftoken")
-                                },
-                                body: JSON.stringify({ rating, comment })
-                            });
-
-                            if (resp.ok) {
-                                loadMyReviews();
-                            }
-                        }
+                        });
                     });
-
-                    if (resp.ok) {
-                        loadMyReviews();
-                    }
-                });
+                }
 
                 container.appendChild(div);
             });
@@ -265,53 +294,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    async function loadUserReviews(userId) {
-        const container = document.getElementById("myReviewsContainer");
+    document.getElementById("searchReviews").addEventListener("input", () => {
+        clearTimeout(searchTimeout);
 
-        try {
-            const response = await fetch(`http://localhost:8000/movies/user/${userId}/reviews/`);
-            const reviews = await response.json();
+        searchTimeout = setTimeout(() => {
+            currentSearch = document.getElementById("searchReviews").value;
+            currentPage = 1;
+            loadReviews();
+        }, 400);
+    });
 
-            container.innerHTML = "";
-
-            if (reviews.length === 0) {
-                container.innerHTML = "<p class='text-light'>No hay reseñas</p>";
-                return;
-            }
-
-            reviews.forEach(r => {
-                const div = document.createElement("div");
-                div.classList.add("card", "p-2", "mb-2");
-
-                div.innerHTML = `
-                <div class="d-flex justify-content-between">
-                    <strong>${r.movie_title}</strong>
-                    <span>⭐ ${r.rating}</span>
-                </div>
-                <p>${r.comment}</p>
-            `;
-
-                div.addEventListener("click", () => {
-                    window.location.href = `movie.html?id=${r.movie_id}`;
-                });
-
-                container.appendChild(div);
-            });
-
-        } catch (error) {
-            console.error(error);
+    document.getElementById("prevReviews").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadReviews();
         }
-    }
+    });
+
+    document.getElementById("nextReviews").addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadReviews();
+        }
+    });
 
     if (userId) {
         editBtn.classList.add("d-none");
         cancelBtn.classList.add("d-none");
         imageInput.classList.add("d-none");
-
-        await loadUserReviews(userId);
-
-    } else {
-        await loadMyReviews();
     }
+
+    await loadReviews();
 
 });

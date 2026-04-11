@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 from django.core.paginator import Paginator
 
 from movies.models import Movie, Review
@@ -135,45 +135,42 @@ class DeleteReviewView(APIView):
         return Response({"message": "Reseña eliminada"})
 
 
-class MyReviewsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        reviews = Review.objects.filter(user=request.user).select_related('movie').order_by('-created_at')
-
-        data = []
-        for r in reviews:
-            data.append({
-                "id": r.id,
-                "movie_id": r.movie.id,
-                "movie_title": r.movie.title,
-                "rating": r.rating,
-                "comment": r.comment
-            })
-
-        return Response(data)
-
-
-class UserReviewsView(APIView):
+class ReviewListView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request, user_id):
-        reviews = Review.objects.filter(user_id=user_id).select_related('movie')
+    def get(self, request):
 
-        data = []
+        user_id = request.query_params.get("user_id")
+        search = request.query_params.get("search")
+        page = request.query_params.get("page", 1)
+        movie_id = request.query_params.get("movie_id")
 
-        for r in reviews:
-            data.append({
-                "id": r.id,
-                "movie_id": r.movie.id,
-                "movie_title": r.movie.title,
-                "rating": r.rating,
-                "comment": r.comment,
-                "created_at": r.created_at,
-                "user_id": r.user.id
-            })
+        reviews = Review.objects.select_related('movie', 'user').all().order_by('-created_at')
 
-        return Response(data)
+        if user_id:
+            reviews = reviews.filter(user_id=user_id)
+
+        if movie_id:
+            reviews = reviews.filter(movie_id=movie_id)
+
+        if search:
+            reviews = reviews.filter(
+                Q(movie__title__icontains=search)
+            )
+
+        paginator = Paginator(reviews, 5)
+        page_obj = paginator.get_page(page)
+
+        serializer = ReviewSerializer(
+            page_obj,
+            many=True
+        )
+
+        return Response({
+            "results": serializer.data,
+            "total_pages": paginator.num_pages,
+            "current_page": page_obj.number
+        })
 
 
 class CreateMovieView(APIView):

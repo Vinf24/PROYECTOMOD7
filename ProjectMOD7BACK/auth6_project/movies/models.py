@@ -9,8 +9,7 @@ class Movie(models.Model):
     poster = models.ImageField(
         upload_to='posters/',
         null=True,
-        blank=True,
-        default='posters/default.jpg'
+        blank=True
     )
     release_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

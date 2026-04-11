@@ -30,10 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         perfilBtn.classList.remove("d-none");
         cuentaBtn.classList.remove("d-none");
         logoutBtn.classList.remove("d-none");
-
-        if (user.is_staff && typeof showControlButton === "function") {
-            showControlButton();
-        }
     }
 
     if (prevBtn) {
@@ -65,12 +61,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 credentials: "include"
             });
 
-            if (!response.ok) {
+            const data = await response.json();
+
+            if (!data.authenticated) {
                 showLoggedOut();
                 return;
             }
-
-            const data = await response.json();
 
             showLoggedIn(data.user);
 
@@ -161,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 const posterUrl = movie.poster
                     ? `http://localhost:8000${movie.poster}`
-                    : "";
+                    : "img/posters/default.png";
 
                 col.innerHTML = `
     <div class="card h-100 movie-card" style="cursor:pointer;">
