@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnConfirm.className = `alert-btn alert-btn-${type}`;
         btnConfirm.textContent = confirmText;
 
-        btnConfirm.onclick = () => {
+        btnConfirm.onclick = async () => {
 
             const inputs = alertMessage.querySelectorAll("input, textarea");
             const values = {};
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (onConfirm) {
-                const shouldClose = onConfirm(values);
+                const shouldClose = await onConfirm(values);
 
                 if (shouldClose === false) return;
             }

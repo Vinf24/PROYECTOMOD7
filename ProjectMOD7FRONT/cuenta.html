@@ -11,6 +11,11 @@
 </head>
 
 <body>
+    <div class="navbar nav-stack d-flex justify-content-end gap-2 px-3">
+        <a href="main.html" class="btn btn-primary mt-1 surf" data-title="Menú Principal">Volver al
+            Menú
+            Principal</a>
+    </div>
 
     <div class="container my-5">
         <div class="tarjeta p-4">
@@ -20,12 +25,12 @@
 
             <div class="mb-3">
                 <label>Nombres</label>
-                <input id="namesInput" class="form-control cont-data">
+                <input id="namesInput" class="form-control alert-input">
             </div>
 
             <div class="mb-3">
                 <label>Apellidos</label>
-                <input id="lastnamesInput" class="form-control cont-data">
+                <input id="lastnamesInput" class="form-control alert-input">
             </div>
 
             <button id="saveBtn" class="btn btn-main w-75 mb-3 mx-auto d-block">
@@ -55,12 +60,6 @@
                 <button id="controlPanelBtn" class="btn btn-main d-none">
                     Panel de Control
                 </button>
-
-                <div class="text-center mt-2">
-                    <a href="main.html" class="btn btn-primary mt-3 surf" data-title="Menú Principal">Volver al
-                        Menú
-                        Principal</a>
-                </div>
             </div>
 
         </div>
@@ -70,7 +69,7 @@
         <div id="alertBox" class="d-flex flex-column gap-2 text-center p-3 rounded-3">
             <h5 id="alertTitle"></h5>
             <p id="alertMessage"></p>
-            <div id="alertButtons"></div>
+            <div id="alertButtons" class="d-flex justify-content-center gap-3 mt-2"></div>
         </div>
     </div>
 

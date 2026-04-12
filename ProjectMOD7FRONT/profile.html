@@ -14,10 +14,16 @@
 </head>
 
 <body class="overflow-y-scroll">
-    <div class="container my-5">
+    <div class="navbar nav-stack d-flex justify-content-end gap-2 px-3">
+        <a href="main.html" class="btn btn-primary mt-1 surf" data-title="Menú Principal">Volver al
+            Menú
+            Principal</a>
+    </div>
+    <div class="container my-5 sub-nav">
         <div class="tarjeta p-4 text-center">
+            <div class="main-title text-center">Perfil</div>
 
-            <img id="profileImage" src="img/profiles/default.png" class="profile-img mb-3" width="120">
+            <img id="profileImage" src="img/profiles/default.png" class="profile-img my-3" width="120">
 
             <h4 id="alias">Sin alias</h4>
 
@@ -32,12 +38,6 @@
             </button>
 
             <input type="file" id="imageInput" class="form-control mt-2 d-none" accept="image/*">
-
-            <div class="text-center mt-2">
-                <a href="main.html" class="btn btn-primary mt-3 surf" data-title="Menú Principal">Volver al
-                    Menú
-                    Principal</a>
-            </div>
 
             <h3 class="mt-4">Mis reseñas</h3>
 

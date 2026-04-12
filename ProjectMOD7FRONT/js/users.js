@@ -15,11 +15,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     const editActive = document.getElementById("editActive");
     const saveEditUser = document.getElementById("saveEditUser");
 
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentSearch = "";
+    let searchTimeout;
+
+    const pageInfo = document.getElementById("pageInfo");
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+
+    document.getElementById("prevPage").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadUsers(currentFilter);
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadUsers(currentFilter);
+        }
+    });
+
     document.getElementById("editUserModal").addEventListener("hidden.bs.modal", () => {
         userIdToEdit = null;
     });
 
-    loadUsers(currentFilter);
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+
+        clearTimeout(searchTimeout);
+
+        searchTimeout = setTimeout(() => {
+            currentSearch = e.target.value.trim();
+            currentPage = 1; // reset
+            loadUsers(currentFilter);
+        }, 500);
+    });
 
     document.addEventListener("click", (e) => {
 
@@ -66,6 +98,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (e.target.classList.contains("filter-btn")) {
+            currentFilter = e.target.dataset.filter;
+            currentPage = 1;
+            loadUsers(currentFilter);
+        }
+
+        if (e.target.classList.contains("filter-btn")) {
 
             currentFilter = e.target.dataset.filter;
 
@@ -106,9 +144,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             let url = "http://localhost:8000/users/";
+            let params = [];
 
             if (filter !== "all") {
-                url += `?active=${filter}`;
+                params.push(`&active=${filter}`);
+            }
+
+            if (currentSearch) {
+                params.push(`search=${encodeURIComponent(currentSearch)}`);
+            }
+
+            params.push(`page=${currentPage}`);
+
+            if (params.length > 0) {
+                url += `?${params.join("&")}`;
             }
 
             const response = await fetch(url, {
@@ -116,11 +165,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                 credentials: "include"
             });
 
-            if (!response.ok) {
-                throw new Error("Error al obtener usuarios");
+            if (!response.ok) throw new Error();
+
+            const data = await response.json();
+
+            const users = data.results;
+            totalPages = data.total_pages;
+            currentPage = data.current_page;
+
+            if (pageInfo) {
+                pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
             }
 
-            const users = await response.json();
+            if (prevBtn) {
+                prevBtn.disabled = currentPage <= 1;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = currentPage >= totalPages;
+            }
 
             tbody.innerHTML = "";
 
@@ -131,26 +194,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td>${user.id}</td>
                 <td>${user.names} ${user.lastnames}</td>
                 <td>${user.email}</td>
-                <td>${user.mfa_required ? "Sí" : "No"}</td>
                 <td>
                     <button 
-                        class="btn btn-sm btn-warning btn-edit"
+                        class="btn btn-sm btn-outline-primary btn-edit"
                         data-id="${user.id}"
                         data-names="${user.names}"
                         data-lastnames="${user.lastnames}"
-                        data-mfa="${user.mfa_required}"
                         data-active="${user.is_active}"
                     >
-                        Editar
+                        ✏️
                     </button>
-                    <button class="btn btn-sm btn-danger btn-delete" data-id="${user.id}">
-                        Eliminar
+                    <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${user.id}">
+                        🗑️
                     </button>
                 </td>
             `;
 
                 tbody.appendChild(tr);
             });
+
+            document.getElementById("pageInfo").textContent =
+                `Página ${currentPage} de ${totalPages}`;
 
         } catch (error) {
             console.error(error);
@@ -159,7 +223,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 message: "Error cargando usuarios"
             });
         }
-
     }
 
     saveEditUser.addEventListener("click", async () => {
@@ -229,5 +292,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             saveEditUser.disabled = false;
         }
     });
+
+    loadUsers(currentFilter);
 
 });

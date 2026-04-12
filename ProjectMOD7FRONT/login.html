@@ -29,14 +29,14 @@
                 <form id="loginForm" novalidate>
 
                     <div class="mb-3">
-                        <label class="text-light-custom">Email</label>
-                        <input class="form-control input-modern" type="email" id="emailLogin"
+                        <label class="text-light-custom mb-1">Email:</label>
+                        <input class="form-control alert-input" type="email" id="emailLogin"
                             placeholder="correo@dominio.com">
                     </div>
 
                     <div class="mb-3">
-                        <label class="text-light-custom">Contraseña</label>
-                        <input class="form-control input-modern" type="password" id="claveLogin" placeholder="••••••••">
+                        <label class="text-light-custom mb-1">Contraseña:</label>
+                        <input class="form-control alert-input" type="password" id="claveLogin" placeholder="••••••••">
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -58,16 +58,15 @@
                     ¿No tienes cuenta?
                 </p>
 
-                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#registroModal">
+                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#registroModal">
                     Crear cuenta
                 </button>
 
                 <div class="text-center mt-3">
-                    <button id="guestBtn" class="btn btn-outline-dark w-100">
+                    <button id="guestBtn" class="btn btn-dark w-100">
                         Entrar como invitado
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -83,28 +82,28 @@
                         <div class="row">
                             <div class="mb-3 w-50">
                                 <label for="nombre" class="form-label">Nombre:</label>
-                                <input type="text" id="nombre" class="form-control pe-0 cont-data"
+                                <input type="text" id="nombre" class="form-control pe-0 alert-input"
                                     placeholder="nombre..." required>
                             </div>
                             <div class="mb-3 w-50">
                                 <label for="apellido" class="form-label">Apellido:</label>
-                                <input type="text" id="apellido" class="form-control pe-0 cont-data"
+                                <input type="text" id="apellido" class="form-control pe-0 alert-input"
                                     placeholder="apellido..." required>
                             </div>
                         </div>
                         <div class="mb-3 w-75">
                             <label for="regEmail" class="form-label">Correo Electrónico:</label>
-                            <input type="email" id="regEmail" class="form-control cont-data"
+                            <input type="email" id="regEmail" class="form-control alert-input"
                                 placeholder="correo electrónico..." required>
                         </div>
                         <div class="mb-3 w-75">
                             <label for="regClave" class="form-label">Contraseña:</label>
-                            <input type="password" id="regClave" class="form-control cont-data" placeholder="contraseña"
-                                required>
+                            <input type="password" id="regClave" class="form-control alert-input"
+                                placeholder="contraseña" required>
                         </div>
                         <div class="mb-3 w-75">
-                            <label for="regClaveRepeat" class="form-label">Confirme su Contraseña:</label>
-                            <input type="password" id="regClaveRepeat" class="form-control cont-data"
+                            <label for="regClaveRepeat" class="form-label">Confirme Contraseña:</label>
+                            <input type="password" id="regClaveRepeat" class="form-control alert-input"
                                 placeholder="repetir contraseña" required>
                         </div>
                         <button class="btn btn-primary" type="submit" id="register">Registrarse</button>

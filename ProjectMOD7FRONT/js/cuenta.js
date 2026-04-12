@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         let data = await resp.json();
+        console.log("Respuesta backend:", data);
 
         if (!data.mfa_required) return data;
 
@@ -94,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                         <input 
                             id="mfaCode" 
-                            class="form-control input-modern text-center mb-3"
+                            class="form-control alert-input text-center mb-3"
                             placeholder="123456"
                             maxlength="6"
                             ${isBlocked ? "disabled" : ""}
@@ -329,15 +330,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         showAlert({
             title: "Cambiar email",
             html: `
-                <input id="currentEmail" class="form-control mb-2" placeholder="Email actual">
-                <input id="newEmail" class="form-control" placeholder="Nuevo email">
+                <input id="currentEmail" class="form-control alert-input mb-2" placeholder="Email actual">
+                <input id="newEmail" class="form-control alert-input" placeholder="Nuevo email">
             `,
             confirmText: "Guardar",
             cancelText: "Cancelar",
             onConfirm: async (values) => {
 
-                const current = values.currentEmail;
-                const newEmail = values.newEmail;
+                const current = values.currentEmail.trim();
+                const newEmail = values.newEmail.trim();
 
                 if (!current || !newEmail) {
                     showAlert({ type: "danger", message: "Completa todos los campos" });
@@ -351,6 +352,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                             current_email: current,
                             new_email: newEmail
                         }
+                    });
+
+                    if (data?.force_logout) {
+                        window.location.href = "login.html";
+                        return;
+                    }
+
+                    console.log("Enviando:", {
+                        current_email: current,
+                        new_email: newEmail
                     });
 
                     showAlert({ type: "success", message: data.message });
@@ -367,9 +378,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         showAlert({
             title: "Cambiar contraseña",
             html: `
-                <input id="oldPass" type="password" class="form-control mb-2" placeholder="Actual">
-                <input id="newPass" type="password" class="form-control mb-2" placeholder="Nueva">
-                <input id="confirmPass" type="password" class="form-control" placeholder="Confirmar">
+                <input id="oldPass" type="password" class="form-control alert-input mb-2" placeholder="Actual">
+                <input id="newPass" type="password" class="form-control alert-input mb-2" placeholder="Nueva">
+                <input id="confirmPass" type="password" class="form-control alert-input" placeholder="Confirmar">
             `,
             confirmText: "Guardar",
             cancelText: "Cancelar",
@@ -397,6 +408,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                         }
                     });
 
+                    if (data?.force_logout) {
+                        window.location.href = "login.html";
+                        return;
+                    }
+
                     showAlert({ type: "success", message: data.message });
 
                 } catch (err) {
@@ -412,7 +428,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             title: "Eliminar cuenta",
             html: `
                 <p>Escribe <b>eliminar</b> para confirmar</p>
-                <input id="confirmDelete" class="form-control">
+                <input id="confirmDelete" class="form-control alert-input">
             `,
             confirmText: "Eliminar",
             cancelText: "Cancelar",
@@ -430,6 +446,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                         url: "http://localhost:8000/auth/delete-account/",
                         payload: {}
                     });
+
+                    if (data?.force_logout) {
+                        window.location.href = "login.html";
+                        return;
+                    }
 
                     showAlert({
                         type: "success",

@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const rememberMe = localStorage.getItem("remember_me") === "true";
 
     let success = false;
+    let isResending = false;
+    let timerTimeout = null;
+    let resendTimeout = null;
 
     const maskedEmail = localStorage.getItem("masked_email");
 
@@ -27,7 +30,25 @@ document.addEventListener("DOMContentLoaded", () => {
         input.value = input.value.replace(/\D/g, "");
     });
 
+    function updateAttemptsText(attempts) {
+        const el = document.getElementById("attemptsText");
+        if (!el) return;
+
+        if (attempts === null || attempts === "" || attempts === undefined) {
+            el.textContent = "";
+            return;
+        }
+
+        if (attempts === 0) {
+            el.textContent = "Sin intentos restantes";
+        } else {
+            el.textContent = `Intentos restantes: ${attempts}`;
+        }
+    }
+
     function updateTimer() {
+        if (timerTimeout) clearTimeout(timerTimeout);
+
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
 
@@ -38,22 +59,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             input.disabled = true;
             document.getElementById("mfa-btn").disabled = true;
-
             return;
         }
 
         timeLeft--;
-        setTimeout(updateTimer, 1000);
+
+        timerTimeout = setTimeout(updateTimer, 1000);
     }
 
     updateTimer();
 
     function updateResendButton() {
+        if (resendTimeout) clearTimeout(resendTimeout);
+
         if (resendCooldown > 0) {
             resendBtn.disabled = true;
             resendBtn.textContent = `Reenviar (${resendCooldown}s)`;
             resendCooldown--;
-            setTimeout(updateResendButton, 1000);
+
+            resendTimeout = setTimeout(updateResendButton, 1000);
         } else {
             resendBtn.disabled = false;
             resendBtn.textContent = "Reenviar código";
@@ -84,6 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.disabled = true;
 
         const code = input.value.trim();
+
+        if (isResending) return;
 
         if (!code || code.length !== 6) {
             mostrarError("Código inválido");
@@ -137,11 +163,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let msg = data.error || "Código incorrecto";
 
-                if (data.attempts_left !== undefined) {
-                    msg += ` (Intentos restantes: ${data.attempts_left})`;
-                }
-
                 mostrarError(msg);
+
+                if (data.attempts_left !== undefined) {
+                    updateAttemptsText(data.attempts_left);
+                }
                 input.value = "";
 
                 return;
@@ -212,24 +238,31 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("challenge_id", challengeId);
             localStorage.setItem("masked_email", data.masked_email);
 
+            input.disabled = false;
+            document.getElementById("mfa-btn").disabled = false;
+            input.value = "";
+            input.focus();
+
+            timeLeft = 300;
+            updateTimer();
+
+            resendCooldown = 60;
+            updateResendButton();
+
+            updateAttemptsText(null);
+
             const text = document.getElementById("mfaEmailText");
             if (text) {
                 text.textContent = `Ingresa el código enviado a ${data.masked_email}`;
             }
 
-            timeLeft = 300;
-            updateTimer();
-            resendCooldown = 60;
-            updateResendButton();
-
             showAlert({ type: "success", message: "Nuevo código enviado" });
 
         } catch (err) {
             showAlert({ type: "danger", message: err.message || "Error al reenviar código" });
-        } finally {
-            resendBtn.disabled = false;
-            resendBtn.textContent = "Reenviar código";
         }
     });
+
+    isResending = false;
 
 });

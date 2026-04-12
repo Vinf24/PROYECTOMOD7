@@ -17,22 +17,10 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-.input-modern {
-    border-radius: 0.6rem;
-    border: 1px solid #ced4da;
-    padding: 0.6rem 0.75rem;
-    transition: all 0.2s ease;
-}
-
-.input-modern:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 2px rgb(8, 12, 92);
-}
-
 .btn.btn-soft {
-    background-color: rgb(6, 17, 69);
-    border: 1px solid #e9f1ff;
-    color: #e9f1ff;
+    background-color: rgb(27, 47, 148);
+    border: 1px solid #ffffff;
+    color: #ffffff;
     font-weight: 500;
 }
 
@@ -43,7 +31,7 @@
 }
 
 .btn.btn-main {
-    background: #10058c;
+    background: #080249;
     color: white;
     border: 1px solid #ffffff;
     border-radius: 0.6rem;
@@ -53,12 +41,12 @@
 }
 
 .btn.btn-main:hover {
-    background: #0b5ed7;
+    background: #064eb9;
     transform: translateY(-1px);
 }
 
 .text-light-custom {
-    color: #6c757d;
+    color: #12153b;
     font-size: 0.95rem;
 }
 
@@ -431,20 +419,16 @@ h5 {
     font-size: 1rem;
     padding: 0.6rem 0.75rem;
     background-color: #1e293b;
-    border: 1px solid #8fbeff;
+    border: 1px solid #285390;
     color: #e5e7eb;
     border-radius: 0.5rem;
 }
 
 .form-control:focus {
-    border-color: #ffffff;
+    border-color: 0.15rem solid #ffffff;
     box-shadow: 0 0 0 0.1rem rgba(59, 130, 246, 0.3);
     background-color: #1e293b;
     color: #fff;
-}
-
-.form-control.cont-data {
-    border: 0.08rem solid #598ec8;
 }
 
 .main-title {
@@ -455,6 +439,7 @@ h5 {
     margin-top: 3rem;
     margin-bottom: 1.5rem;
     text-align: center;
+    width: 100%
 }
 
 .max-container {
@@ -467,10 +452,6 @@ hr.linea {
     width: 75%;
     max-width: 400px;
     margin: 0 auto;
-}
-
-.inicio {
-    margin-top: 6rem;
 }
 
 .clickable-user {
@@ -531,12 +512,6 @@ hr.linea {
     margin-top: 0.25rem;
 }
 
-#loginForm input,
-#registerForm input {
-    background-color: #abadffc9;
-    color: #000;
-}
-
 .modal-title {
     color: #081d49;
     font-weight: 600;
@@ -561,6 +536,28 @@ hr.linea {
 
 .link-profile:hover {
     text-decoration: underline;
+}
+
+.alert-input,
+#searchInput,
+#searchReviews {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #444;
+}
+
+.alert-input::placeholder,
+#searchInput::placeholder,
+#searchReviews::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.alert-input:focus,
+#searchInput:focus,
+#searchReviews:focus {
+    background-color: #0a0634;
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
 }
 
 /* Animaciones para alertas */

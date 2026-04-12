@@ -3,45 +3,62 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usuarios</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="img/icon-Alke-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/icon-Alke-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="img/icon-Alke-48.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="bg-light">
+<body class="overflow-y-scroll">
+    <div class="navbar nav-stack d-flex justify-content-end gap-2 px-3">
+        <a href="main.html" class="btn btn-primary mt-1 surf" data-title="Menú Principal">Volver al
+            Menú
+            Principal</a>
+    </div>
 
     <div class="container mt-5">
-        <h2 class="mb-4 text-center">Listado de Usuarios</h2>
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-12 col-md-10 col-lg-8">
+                <div class="main-title text-center">Listado de Usuarios</div>
 
-        <div class="d-flex justify-content-center gap-2 mb-3">
-            <button class="btn btn-outline-primary filter-btn" data-filter="true">
-                Activos
-            </button>
-            <button class="btn btn-outline-secondary filter-btn" data-filter="false">
-                Inactivos
-            </button>
-            <button class="btn btn-soft filter-btn" data-filter="all">
-                Todos
-            </button>
+                <div class="text-center mb-3">
+                    <div class="d-inline-flex gap-2">
+                        <button class="btn btn-primary btn-sm filter-btn">Activos</button>
+                        <button class="btn btn-danger btn-sm filter-btn">Inactivos</button>
+                        <button class="btn btn-main btn-sm filter-btn">Todos</button>
+                    </div>
+                </div>
+                <div class="max-container">
+                    <div class="mb-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuario...">
+                    </div>
+                    <table class="table table-bordered table-hover table-back">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button id="prevPage" class="btn btn-soft btn-sm">Anterior</button>
+                        <button id="nextPage" class="btn btn-soft btn-sm">Siguiente</button>
+                    </div>
+
+                    <div class="text-center mt-2">
+                        <span id="pageInfo" class="text-light"></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <table class="table table-bordered table-hover bg-white">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>MFA</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-            </tbody>
-        </table>
-
-        <div class="text-center mt-3">
-            <a href="control.html" class="btn btn-secondary">Volver</a>
-        </div>
     </div>
 
     <div class="modal fade" id="editUserModal" tabindex="-1">

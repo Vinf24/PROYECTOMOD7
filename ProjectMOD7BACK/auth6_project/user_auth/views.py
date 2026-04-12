@@ -15,10 +15,12 @@ from user_auth.services.mfa_service import create_mfa_challenge, mask_email, ver
 from user_auth.services.email_service import send_mfa_code_email
 from user_auth.services.rate_limit_service import is_rate_limited
 from user_auth.permissions import IsOwner
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth import login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -171,16 +173,34 @@ class UserListView(APIView):
 
     def get(self, request):
         active = request.query_params.get('active')
+        page = request.query_params.get("page", 1)
+        search = request.query_params.get("search")
 
         users = CustomUser.objects.all()
+
+        if search:
+            filters = Q(email__icontains=search) | Q(names__icontains=search) | Q(lastnames__icontains=search)
+
+            if search.isdigit():
+                filters |= Q(id=int(search))
+
+            users = users.filter(filters)
 
         if active == "true":
             users = users.filter(is_active=True)
         elif active == "false":
             users = users.filter(is_active=False)
 
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
+        paginator = Paginator(users, 5)
+        page_obj = paginator.get_page(page)
+
+        serializer = UserSerializer(page_obj, many=True)
+
+        return Response({
+            "results": serializer.data,
+            "total_pages": paginator.num_pages,
+            "current_page": page_obj.number
+        })
 
 
 class UserDetailView(APIView):
@@ -265,7 +285,10 @@ class DeleteMyAccountView(APIView):
 
         logout(request)
 
-        return Response({"message": "Cuenta eliminada"})
+        return Response({
+            "message": "Cuenta eliminada",
+            "force_logout": True
+            })
 
 class AdminPanelView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -368,7 +391,10 @@ class ChangePasswordView(APIView):
 
         logout(request)
 
-        return Response({"message": "Contraseña actualizada"})
+        return Response({
+            "message": "Contraseña actualizada",
+            "force_logout": True
+            })
 
 
 class ChangeEmailView(APIView):
@@ -420,7 +446,10 @@ class ChangeEmailView(APIView):
 
         logout(request)
 
-        return Response({"message": "Email actualizado"})
+        return Response({
+            "message": "Email actualizado",
+            "force_logout": True
+            })
 
 
 class ResendMFAView(APIView):
