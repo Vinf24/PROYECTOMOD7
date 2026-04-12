@@ -67,6 +67,7 @@
 
 .movie-card {
     max-width: 280px;
+    margin: 0 auto;
     background: #1e293b;
     border: none;
     border-radius: 1.2rem;
@@ -120,7 +121,7 @@ body {
             black 0%,
             #0f172a 20%,
             #13203e 80%,
-            #053480 100%);
+            #032357 100%);
     color: #e5e7eb;
     min-height: 100vh;
     font-family: 'Inter', 'Segoe UI', sans-serif;

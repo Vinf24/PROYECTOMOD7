@@ -101,11 +101,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <img src="${posterUrl}" style="height:200px; object-fit:cover;">
 
                 <div class="mt-2">
-                    <h6>${movie.title}</h6>
-                    <small>ID: ${movie.id}</small>
+                    <h4>${movie.title}</h4>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-2">
+                <small class="fs-5 fw-bold">ID: ${movie.id}</small>
                     <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${movie.id})">✏️</button>
                     <button class="btn btn-outline-danger btn-sm" onclick="deleteMovie(${movie.id})">🗑️</button>
                 </div>
