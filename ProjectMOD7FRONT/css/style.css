@@ -116,7 +116,11 @@
 }
 
 body {
-    background: linear-gradient(180deg, #0f172a, #1e293b);
+    background: linear-gradient(180deg,
+            black 0%,
+            #0f172a 20%,
+            #13203e 80%,
+            #053480 100%);
     color: #e5e7eb;
     min-height: 100vh;
     font-family: 'Inter', 'Segoe UI', sans-serif;
@@ -197,11 +201,6 @@ body {
     margin: auto;
 }
 
-.logo {
-    height: auto;
-    max-width: 80px;
-}
-
 #dlgOverlay .center-stack {
     margin: auto;
     padding: 1.5rem;
@@ -259,11 +258,6 @@ body {
 .text-detail {
     color: #bfc5d0;
     font-size: 1rem;
-}
-
-.mov-detail {
-    color: #bfc5d0;
-    font-size: 2rem;
 }
 
 h5 {
@@ -438,49 +432,6 @@ hr.linea {
     margin: 0 auto;
 }
 
-.clickable-user {
-    color: #ffffff;
-    cursor: pointer;
-    text-decoration: underline;
-    transition: all 0.2s ease;
-}
-
-.clickable-user:hover {
-    color: blue;
-    opacity: 0.9;
-}
-
-.clickable-alias {
-    color: blue;
-    cursor: pointer;
-    text-decoration: underline;
-    transition: all 0.2s ease;
-}
-
-.clickable-alias:hover {
-    color: rgb(0, 0, 0);
-    opacity: 0.9;
-}
-
-.clickable-user:hover {
-    color: blue;
-    opacity: 0.9;
-}
-
-.review-title {
-    color: #000000;
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.review-detail {
-    color: #000000;
-    font-size: 2rem;
-    font-weight: 400;
-    margin-bottom: 0.5rem;
-}
-
 #movieDetail {
     margin-top: 5rem;
 }
@@ -490,26 +441,9 @@ hr.linea {
     color: #bbb;
 }
 
-.review-text {
-    color: #e5e7eb;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-}
-
 .modal-title {
     color: #081d49;
     font-weight: 600;
-}
-
-#movieTitle,
-#movieDescription,
-#movieDate,
-#moviePoster {
-    background-color: #ccd8ea;
-    color: #000000;
-    border: 1px solid #113567;
-    border-radius: 0.5rem;
-    padding: 0.6rem 0.75rem;
 }
 
 .link-profile {
@@ -520,6 +454,11 @@ hr.linea {
 
 .link-profile:hover {
     text-decoration: underline;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
 }
 
 .alert-input,
@@ -573,7 +512,6 @@ hr.linea {
     }
 }
 
-/* Animaciones solo en el contenido de la alerta, no en el fondo */
 .alert-warning-custom.alert-entering,
 .alert-success-custom.alert-entering,
 .alert-info-custom.alert-entering {

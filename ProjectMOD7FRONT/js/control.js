@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const col = document.createElement("div");
             col.classList.add("col-12", "col-sm-6", "col-md-4");
 
-            const posterUrl = movie.poster_url
+            const posterUrl = movie.poster
                 ? `http://localhost:8000${movie.poster}`
                 : "img/posters/default.png";
 
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-2">
-                    <button class="btn btn-soft btn-sm" onclick="openEditModal(${movie.id})">✏️</button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${movie.id})">✏️</button>
                     <button class="btn btn-outline-danger btn-sm" onclick="deleteMovie(${movie.id})">🗑️</button>
                 </div>
 
@@ -350,10 +350,6 @@ async function deleteMovie(id) {
             }
         }
     });
-
-    if (response.ok) {
-        loadMoviesAdmin();
-    }
 }
 
 async function updateMovie(id, movieData) {
@@ -399,18 +395,27 @@ async function openEditModal(id) {
     const response = await fetch(`http://localhost:8000/movies/${id}/`);
     const movie = await response.json();
 
+    document.getElementById("globalAlert").style.display = "none";
     document.getElementById("editTitle").value = movie.title;
     document.getElementById("editDescription").value = movie.description;
     document.getElementById("editReleaseDate").value = movie.release_date || "";
 
-    const posterUrl = movie.poster
-        ? `http://localhost:8000${movie.poster}`
-        : "https://via.placeholder.com/300x450?text=Sin+imagen";
+    const posterUrl = movie.poster_url
+        ? movie.poster_url
+        : "img/posters/default.png";
 
     document.getElementById("currentPoster").src = posterUrl;
 
     const saveBtn = document.getElementById("saveEditMovieBtn");
     saveBtn.dataset.id = id;
+
+    document.body.classList.remove("modal-open");
+    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+    const alertOverlay = document.getElementById("globalAlert");
+    if (alertOverlay) {
+        alertOverlay.style.display = "none";
+    }
 
     const modal = new bootstrap.Modal(document.getElementById("editMovieModal"));
     modal.show();
