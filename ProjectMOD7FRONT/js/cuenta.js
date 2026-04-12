@@ -316,7 +316,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 })
             });
 
-            if (!resp.ok) throw new Error();
+            if (!resp.ok) {
+                throw new Error(data.error || "Error en la operación");
+            }
 
             showAlert({ type: "success", message: "Datos actualizados" });
 

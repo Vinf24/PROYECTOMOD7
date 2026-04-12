@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (user.is_staff) {
                     window.location.href = "control.html";
                 } else {
-                    window.location.href = "main.html";
+                    window.location.href = "index.html";
                 }
 
             }, { once: true });

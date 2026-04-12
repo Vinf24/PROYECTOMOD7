@@ -250,7 +250,7 @@ class UserDeleteView(APIView):
 
 class DeleteMyAccountView(APIView):
     permission_classes = [IsAuthenticated]
-    def delete(self, request):
+    def post(self, request):
         user = request.user
 
         if user.mfa_required and not request.data.get("mfa_code"):

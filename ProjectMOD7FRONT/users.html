@@ -13,40 +13,51 @@
 </head>
 
 <body class="overflow-y-scroll">
+
     <div class="navbar nav-stack d-flex justify-content-end gap-2 px-3">
-        <a href="main.html" class="btn btn-primary mt-1 surf" data-title="Menú Principal">Volver al
-            Menú
-            Principal</a>
+        <a href="index.html" class="btn btn-primary mt-1">
+            Volver al Menú Principal
+        </a>
     </div>
 
-    <div class="container mt-5">
+    <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-12 col-sm-12 col-md-10 col-lg-8">
+
                 <div class="main-title text-center">Listado de Usuarios</div>
 
-                <div class="text-center mb-3">
-                    <div class="d-inline-flex gap-2">
-                        <button class="btn btn-primary btn-sm filter-btn">Activos</button>
-                        <button class="btn btn-danger btn-sm filter-btn">Inactivos</button>
-                        <button class="btn btn-main btn-sm filter-btn">Todos</button>
-                    </div>
-                </div>
                 <div class="max-container">
-                    <div class="mb-3">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuario...">
+
+                    <div class="tarjeta p-3 mb-3">
+                        <div class="row g-2">
+
+                            <div class="col-12 col-sm-12 col-md-10 col-lg-8">
+                                <label class="form-label fw-bold text-light">Filtrar por estado:</label>
+                                <select id="filterSelect" class="form-select">
+                                    <option value="true">Activos</option>
+                                    <option value="false">Inactivos</option>
+                                    <option value="all" selected>Todos</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6 d-flex align-items-end">
+                                <input type="text" id="searchInput" class="form-control"
+                                    placeholder="Buscar usuario...">
+                            </div>
+
+                        </div>
                     </div>
-                    <table class="table table-bordered table-hover table-back">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                        </tbody>
-                    </table>
+
+                    <div class="tarjeta p-3">
+                        <div id="usersList" class="row g-3">
+
+                            <div class="col-12 text-center text-light">
+                                No hay usuarios
+                            </div>
+
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-center gap-2 mt-3">
                         <button id="prevPage" class="btn btn-soft btn-sm">Anterior</button>
                         <button id="nextPage" class="btn btn-soft btn-sm">Siguiente</button>
@@ -55,10 +66,10 @@
                     <div class="text-center mt-2">
                         <span id="pageInfo" class="text-light"></span>
                     </div>
+
                 </div>
             </div>
         </div>
-
     </div>
 
     <div class="modal fade" id="editUserModal" tabindex="-1">
@@ -75,17 +86,17 @@
 
                         <div class="mb-2">
                             <label class="form-label">Nombre</label>
-                            <input type="text" id="editNames" class="form-control" required>
+                            <input type="text" id="editNames" class="form-control alert-input" required>
                         </div>
 
                         <div class="mb-2">
                             <label class="form-label">Apellido</label>
-                            <input type="text" id="editLastnames" class="form-control" required>
+                            <input type="text" id="editLastnames" class="form-control alert-input" required>
                         </div>
 
                         <div class="mb-2">
                             <label class="form-label">Nueva contraseña</label>
-                            <input type="password" id="editPassword" class="form-control">
+                            <input type="password" id="editPassword" class="form-control alert-input">
                         </div>
 
                         <div class="form-check">
@@ -112,14 +123,9 @@
 
     <div id="globalAlert" class="dlgOverlay" style="display:none;">
         <div id="alertBox" class="d-flex flex-column gap-2 text-center p-3 rounded-3">
-
-            <h5 id="alertTitle" class="mb-1"></h5>
-            <p id="alertMessage" class="mb-2"></p>
-
-            <div id="alertButtons" class="d-flex justify-content-center gap-2">
-                <!-- botones dinámicos -->
-            </div>
-
+            <h5 id="alertTitle"></h5>
+            <p id="alertMessage"></p>
+            <div id="alertButtons" class="d-flex justify-content-center gap-2"></div>
         </div>
     </div>
 

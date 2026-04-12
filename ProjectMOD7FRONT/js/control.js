@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (mainPageBtn) {
         mainPageBtn.addEventListener("click", () => {
-            window.location.href = "main.html";
+            window.location.href = "index.html";
         });
     }
 
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!user.is_staff) {
-        window.location.href = "main.html";
+        window.location.href = "index.html";
         return;
     }
 

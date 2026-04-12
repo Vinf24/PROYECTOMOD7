@@ -2,9 +2,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let userIdToDelete = null;
     let userIdToEdit = null;
-    let currentFilter = "true";
+    let currentFilter = "all";
 
-    const tbody = document.getElementById("usersTableBody");
+    const usersList = document.getElementById("usersList");
 
     const editModal = new bootstrap.Modal(document.getElementById("editUserModal"));
 
@@ -97,18 +97,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
 
-        if (e.target.classList.contains("filter-btn")) {
-            currentFilter = e.target.dataset.filter;
+        const filterSelect = document.getElementById("filterSelect");
+
+        filterSelect.addEventListener("change", (e) => {
+            currentFilter = e.target.value;
             currentPage = 1;
             loadUsers(currentFilter);
-        }
-
-        if (e.target.classList.contains("filter-btn")) {
-
-            currentFilter = e.target.dataset.filter;
-
-            loadUsers(currentFilter);
-        }
+        });
 
         if (e.target.classList.contains("btn-edit")) {
 
@@ -147,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             let params = [];
 
             if (filter !== "all") {
-                params.push(`&active=${filter}`);
+                params.push(`active=${filter}`);
             }
 
             if (currentSearch) {
@@ -185,32 +180,42 @@ document.addEventListener("DOMContentLoaded", async () => {
                 nextBtn.disabled = currentPage >= totalPages;
             }
 
-            tbody.innerHTML = "";
+            usersList.innerHTML = "";
 
             users.forEach(user => {
-                const tr = document.createElement("tr");
+                const col = document.createElement("div");
+                col.className = "col-12";
 
-                tr.innerHTML = `
-                <td>${user.id}</td>
-                <td>${user.names} ${user.lastnames}</td>
-                <td>${user.email}</td>
-                <td>
-                    <button 
-                        class="btn btn-sm btn-outline-primary btn-edit"
-                        data-id="${user.id}"
-                        data-names="${user.names}"
-                        data-lastnames="${user.lastnames}"
-                        data-active="${user.is_active}"
-                    >
-                        ✏️
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${user.id}">
-                        🗑️
-                    </button>
-                </td>
-            `;
+                col.innerHTML = `
+                    <div class="card p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-                tbody.appendChild(tr);
+                        <div>
+                            <div class="fw-bold">#${user.id} - ${user.names} ${user.lastnames}</div>
+                            <small class="text-light-custom">${user.email}</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <span class="badge ${user.is_active ? 'bg-success' : 'bg-danger'}">
+                                ${user.is_active ? 'Activo' : 'Inactivo'}
+                            </span>
+                            <button 
+                                class="btn btn-sm btn-outline-primary btn-edit"
+                                data-id="${user.id}"
+                                data-names="${user.names}"
+                                data-lastnames="${user.lastnames}"
+                                data-active="${user.is_active}">
+                                ✏️
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${user.id}">
+                                🗑️
+                            </button>
+                        </div>
+
+                    </div>
+                `;
+
+                usersList.appendChild(col);
             });
 
             document.getElementById("pageInfo").textContent =

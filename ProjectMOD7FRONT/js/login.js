@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const chkRemember = document.getElementById("chkRemember");
 
     document.getElementById("guestBtn").addEventListener("click", () => {
-        window.location.href = "main.html";
+        window.location.href = "index.html";
     });
 
     function validarLogin({ email, clave }) {
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.user.is_staff) {
                         window.location.href = "control.html";
                     } else {
-                        window.location.href = "main.html";
+                        window.location.href = "index.html";
                     }
 
                 } else if (data.challenge_id) {
