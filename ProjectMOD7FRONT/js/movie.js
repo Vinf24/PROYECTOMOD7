@@ -125,8 +125,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     type: "info",
                     title: "Editar reseña",
                     html: `
-                        <input id="editRating" type="number" class="form-control mb-2" value="${r.rating}" placeholder="Nota (1-10)">
-                        <textarea id="editComment" class="form-control" placeholder="Comentario">${r.comment}</textarea>
+                        <input id="editRating" type="number" class="form-control alert-input mb-2" value="${r.rating}" placeholder="Nota (1-10)">
+                        <textarea id="editComment" class="form-control alert-input" placeholder="Comentario">${r.comment}</textarea>
                     `,
                     confirmText: "Guardar",
                     cancelText: "Cancelar",
