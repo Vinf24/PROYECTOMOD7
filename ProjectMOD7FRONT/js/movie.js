@@ -194,8 +194,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         else {
             reviewSection.innerHTML = `
                 <h5>Agregar reseña</h5>
-                <input type="number" id="rating" class="form-control mb-2" placeholder="Nota (1-10)">
-                <textarea id="comment" class="form-control mb-2" placeholder="Comentario"></textarea>
+                <input type="number" id="rating" class="form-control alert-input mb-2" placeholder="Nota (1-10)">
+                <textarea id="comment" class="form-control alert-input mb-2" placeholder="Comentario"></textarea>
                 <button id="submitReview" class="btn btn-primary w-100">Enviar</button>
             `;
 
